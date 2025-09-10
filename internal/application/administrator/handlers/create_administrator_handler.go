@@ -8,9 +8,9 @@ import (
 )
 
 type CreateAdministratorHandler struct {
-	service *service.AdministratorService
+	Service *service.AdministratorService
 }
 
 func (h *CreateAdministratorHandler) Handle(ctx context.Context, cmd command.CreateAdministratorCommand) (uuid.UUID, error) {
-	return h.service.Create(ctx, cmd.Name, cmd.Phone)
+	return h.Service.Create(ctx, cmd.Name, cmd.Phone)
 }
