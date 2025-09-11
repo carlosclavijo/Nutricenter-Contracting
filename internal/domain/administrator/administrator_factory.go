@@ -1,4 +1,4 @@
-package administrators
+package administrator
 
 import (
 	"errors"
