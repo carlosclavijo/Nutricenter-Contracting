@@ -8,18 +8,22 @@ import (
 	"net/http"
 )
 
+const connection = ":8080"
+
 func main() {
 	_ = godotenv.Load("../../.env")
 
 	db, err := persistence.NewPostgresDB()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("web/main database main error: %v", err)
+		return
 	}
 
 	routes := web.NewRoutes(db)
 
-	err = http.ListenAndServe(":8080", routes.Router())
+	err = http.ListenAndServe(connection, routes.Router())
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("web/main Web connection  error: %v", err)
+		return
 	}
 }
