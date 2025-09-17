@@ -7,5 +7,5 @@ type AggregateRoot struct {
 }
 
 func NewAggregateRoot(id uuid.UUID) *AggregateRoot {
-	return &AggregateRoot{Entity: NewEntity(id)}
+	return &AggregateRoot{NewEntity(id)}
 }

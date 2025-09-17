@@ -15,7 +15,7 @@ func main() {
 
 	db, err := persistence.NewPostgresDB()
 	if err != nil {
-		log.Fatalf("web/main database main error: %v", err)
+		log.Fatalf("[web:main] database main error: %v", err)
 		return
 	}
 
@@ -23,7 +23,7 @@ func main() {
 
 	err = http.ListenAndServe(connection, routes.Router())
 	if err != nil {
-		log.Fatalf("web/main Web connection  error: %v", err)
+		log.Fatalf("[web:main] Web connection  error: %v", err)
 		return
 	}
 }

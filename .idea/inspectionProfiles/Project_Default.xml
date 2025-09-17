@@ -4,6 +4,8 @@
     <inspection_tool class="GoDfaErrorMayBeNotNil" enabled="true" level="WARNING" enabled_by_default="true">
       <methods>
         <method importPath="github.com/carlosclavijo/Nutricenter-Contracting/internal/application/administrator/service" receiver="*AdministratorService" name="Create" />
+        <method importPath="database/sql" receiver="*DB" name="ExecContext" />
+        <method importPath="github.com/carlosclavijo/Nutricenter-Contracting/internal/infrastructure/persistence/handlers/administrator" receiver="*AdministratorHandler" name="HandleGetByEmail" />
       </methods>
     </inspection_tool>
   </profile>

@@ -21,10 +21,12 @@ func NewPostgresDB() (*sql.DB, error) {
 
 	db, err := sql.Open("postgres", dsn)
 	if err != nil {
+		log.Printf("[infrastructure:database] Connecting to PostgreDB: %v", err)
 		return nil, err
 	}
 
 	if err = db.Ping(); err != nil {
+		log.Printf("[infrastructure:database] database connection established but ping failed: %v", err)
 		return nil, err
 	}
 	return db, nil

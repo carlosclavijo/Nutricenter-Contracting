@@ -1,8 +1,12 @@
 package administratorcommands
 
-import "time"
+import (
+	"github.com/google/uuid"
+	"time"
+)
 
-type CreateAdministratorCommand struct {
+type UpdateAdministratorCommand struct {
+	Id        uuid.UUID
 	FirstName string
 	LastName  string
 	Email     string

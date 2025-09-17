@@ -2,17 +2,17 @@ package web
 
 import (
 	"database/sql"
-	"github.com/carlosclavijo/Nutricenter-Contracting/internal/web/handlers"
+	"github.com/carlosclavijo/Nutricenter-Contracting/internal/web/controllers"
 	"github.com/go-chi/chi/v5"
 )
 
 type Routes struct {
-	AdministratorHandler *handlers.AdministratorHandler
+	AdministratorHandler *controllers.AdministratorController
 }
 
 func NewRoutes(db *sql.DB) *Routes {
 	return &Routes{
-		AdministratorHandler: handlers.NewAdministratorHandler(db),
+		AdministratorHandler: controllers.NewAdministratorHandler(db),
 	}
 }
 

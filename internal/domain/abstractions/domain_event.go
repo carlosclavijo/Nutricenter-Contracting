@@ -6,13 +6,13 @@ import (
 )
 
 type DomainEvent struct {
-	Id        uuid.UUID
-	OcurredOn time.Time
+	id         uuid.UUID
+	occurredOn time.Time
 }
 
 func NewDomainEvent() *DomainEvent {
 	return &DomainEvent{
-		Id:        uuid.New(),
-		OcurredOn: time.Now(),
+		id:         uuid.New(),
+		occurredOn: time.Now(),
 	}
 }

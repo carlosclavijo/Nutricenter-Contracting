@@ -6,20 +6,20 @@ import (
 
 type Entity struct {
 	Id           uuid.UUID
-	DomainEvents []DomainEvent
+	domainEvents []DomainEvent
 }
 
 func NewEntity(id uuid.UUID) *Entity {
 	return &Entity{
 		Id:           id,
-		DomainEvents: []DomainEvent{},
+		domainEvents: []DomainEvent{},
 	}
 }
 
 func (e *Entity) AddDomainEvent(event DomainEvent) {
-	e.DomainEvents = append(e.DomainEvents, event)
+	e.domainEvents = append(e.domainEvents, event)
 }
 
 func (e *Entity) ClearDomainEvents() {
-	e.DomainEvents = nil
+	e.domainEvents = nil
 }

@@ -1,3 +1,3 @@
 package administratorqueries
 
-type ListAdministrators struct{}
+type GetListAdministratorsQuery struct{}

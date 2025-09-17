@@ -2,6 +2,6 @@ package administratorqueries
 
 import "github.com/google/uuid"
 
-type GetAdministratorByIdQuery struct {
+type ExistAdministratorByIdQuery struct {
 	Id uuid.UUID
 }
