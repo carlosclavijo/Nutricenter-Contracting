@@ -1,13 +1,13 @@
-package administratorhandlers
+package handlers
 
 import (
 	"context"
-	"github.com/carlosclavijo/Nutricenter-Contracting/internal/application/administrator/command/administrator"
+	"github.com/carlosclavijo/Nutricenter-Contracting/internal/application/administrator/commands"
 	"github.com/carlosclavijo/Nutricenter-Contracting/internal/domain/administrator"
 	"log"
 )
 
-func (h *AdministratorHandler) HandleCreate(ctx context.Context, cmd administratorcommands.CreateAdministratorCommand) (*administrators.Administrator, error) {
+func (h *AdministratorHandler) HandleCreate(ctx context.Context, cmd commands.CreateAdministratorCommand) (*administrators.Administrator, error) {
 	adminFactory, err := h.factory.Create(cmd.FirstName, cmd.LastName, cmd.Email, cmd.Password, cmd.Gender, cmd.Birth, cmd.Phone)
 
 	if err != nil {

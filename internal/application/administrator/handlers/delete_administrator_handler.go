@@ -1,4 +1,4 @@
-package administratorhandlers
+package handlers
 
 import (
 	"context"

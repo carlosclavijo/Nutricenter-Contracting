@@ -2,7 +2,7 @@ package administrators
 
 import (
 	"errors"
-	valueobjects2 "github.com/carlosclavijo/Nutricenter-Contracting/internal/domain/valueobjects"
+	"github.com/carlosclavijo/Nutricenter-Contracting/internal/domain/valueobjects"
 	"log"
 	"time"
 	"unicode"
@@ -28,22 +28,22 @@ func (a administratorFactory) Create(firstName, lastName, email, password, gende
 		return nil, errors.New("gender is empty")
 	}
 
-	emailVO, err := valueobjects2.NewEmail(email)
+	emailVO, err := valueobjects.NewEmail(email)
 	if err != nil {
 		log.Printf("[factory:administrator] Error creating email '%s' object: %v", email, err)
 		return nil, err
 	}
-	passwordVO, err := valueobjects2.NewPassword(password)
+	passwordVO, err := valueobjects.NewPassword(password)
 	if err != nil {
 		log.Printf("[factory:administrator] Error creating password object: %v", err)
 		return nil, err
 	}
-	birthVO, err := valueobjects2.NewBirthDate(birth)
+	birthVO, err := valueobjects.NewBirthDate(birth)
 	if err != nil {
 		log.Printf("[factory:administrator] Error creating birth date '%v' object: %v", birth, err)
 		return nil, err
 	}
-	phoneVO, err := valueobjects2.NewPhone(phone)
+	phoneVO, err := valueobjects.NewPhone(phone)
 	if err != nil {
 		log.Printf("[factory:administrator] Error creating phone '%s' object: %v", phone, err)
 		return nil, err
