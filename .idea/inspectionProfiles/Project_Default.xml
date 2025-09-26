@@ -8,6 +8,7 @@
         <method importPath="github.com/carlosclavijo/Nutricenter-Contracting/internal/infrastructure/persistence/handlers/administrator" receiver="*AdministratorHandler" name="HandleGetByEmail" />
         <method importPath="github.com/carlosclavijo/Nutricenter-Contracting/internal/infrastructure/persistence/handlers/patient" receiver="*PatientHandler" name="HandleGetByEmail" />
         <method importPath="github.com/carlosclavijo/Nutricenter-Contracting/internal/infrastructure/handlers/administrator" receiver="*AdministratorHandler" name="HandleGetByEmail" />
+        <method importPath="github.com/carlosclavijo/Nutricenter-Contracting/internal/infrastructure/handlers/patient" receiver="*PatientHandler" name="HandleGetByEmail" />
       </methods>
     </inspection_tool>
   </profile>

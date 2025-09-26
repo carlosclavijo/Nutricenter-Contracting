@@ -2,7 +2,9 @@ package handlers
 
 import (
 	"context"
+	"errors"
 	"github.com/carlosclavijo/Nutricenter-Contracting/internal/application/patient/commands"
+	"github.com/carlosclavijo/Nutricenter-Contracting/internal/domain/abstractions"
 	"github.com/carlosclavijo/Nutricenter-Contracting/internal/domain/patient"
 	"github.com/carlosclavijo/Nutricenter-Contracting/internal/domain/valueobjects"
 	"github.com/google/uuid"
@@ -10,6 +12,15 @@ import (
 )
 
 func (h *PatientHandler) HandleUpdate(ctx context.Context, cmd commands.UpdatePatientCommand) (*patients.Patient, error) {
+	exist, err := h.repository.ExistById(ctx, cmd.Id)
+	if err != nil {
+		log.Printf("[handler:patient][HandleUpdate] error verifying if Patient exists: %v", err)
+		return nil, err
+	} else if !exist {
+		log.Printf("[handler:patient][HandleUpdate] the Patient doesn't exist '%v'", cmd.Id)
+		return nil, errors.New("patient not found")
+	}
+
 	email, err := valueobjects.NewEmail(cmd.Email)
 	if err != nil {
 		log.Printf("[handler:patient][HandleUpdate] error parsing email: %v", err)
@@ -34,14 +45,15 @@ func (h *PatientHandler) HandleUpdate(ctx context.Context, cmd commands.UpdatePa
 		return nil, err
 	}
 
-	patient := patients.NewPatient(cmd.FirstName, cmd.LastName, email, password, cmd.Gender, birth, phone)
-
 	if cmd.Id == uuid.Nil {
 		log.Printf("[handler:patient][HandleUpdate] Id '%v' is nil", cmd.Id)
+		return nil, err
 	}
 
-	patient, err = h.repository.Update(ctx, patient)
+	patient := patients.NewPatient(cmd.FirstName, cmd.LastName, email, password, cmd.Gender, birth, phone)
+	patient.AggregateRoot = abstractions.NewAggregateRoot(cmd.Id)
 
+	patient, err = h.repository.Update(ctx, patient)
 	if err != nil {
 		log.Printf("[handler:patient][HandleUpdate] error Updating Patient: %v", err)
 		return nil, err

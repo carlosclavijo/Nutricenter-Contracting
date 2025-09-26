@@ -12,6 +12,9 @@ type Delivery struct {
 	date       time.Time
 	street     string
 	number     int
+	createdAt  time.Time
+	updatedAt  time.Time
+	deletedAt  *time.Time
 }
 
 func NewDelivery(contractId uuid.UUID, date time.Time, street string, number int) *Delivery {

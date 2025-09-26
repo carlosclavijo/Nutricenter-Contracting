@@ -16,10 +16,10 @@ type Patient struct {
 	gender      string
 	birth       *vo.BirthDate
 	phone       *vo.Phone
-	lastLoginAt *time.Time
-	createdAt   *time.Time
-	updatedAt   *time.Time
-	deletedAt   *time.Time
+	LastLoginAt time.Time
+	createdAt   time.Time
+	UpdatedAt   time.Time
+	DeletedAt   *time.Time
 }
 
 func NewPatient(firstName, lastName string, email vo.Email, password vo.Password, gender string, birth *vo.BirthDate, phone *vo.Phone) *Patient {
@@ -32,10 +32,6 @@ func NewPatient(firstName, lastName string, email vo.Email, password vo.Password
 		gender:        gender,
 		birth:         birth,
 		phone:         phone,
-		lastLoginAt:   nil,
-		createdAt:     nil,
-		updatedAt:     nil,
-		deletedAt:     nil,
 	}
 }
 
@@ -71,23 +67,11 @@ func (admin *Patient) Phone() *vo.Phone {
 	return admin.phone
 }
 
-func (admin *Patient) LastLoginAt() *time.Time {
-	return admin.lastLoginAt
-}
-
-func (admin *Patient) CreatedAt() *time.Time {
+func (admin *Patient) CreatedAt() time.Time {
 	return admin.createdAt
 }
 
-func (admin *Patient) UpdatedAt() *time.Time {
-	return admin.updatedAt
-}
-
-func (admin *Patient) DeletedAt() *time.Time {
-	return admin.deletedAt
-}
-
-func NewPatientFromDB(id uuid.UUID, firstName, lastName, email, password, gender string, birth *time.Time, phone *string, lastLoginAt, createdAt, updatedAt, deletedAt *time.Time) *Patient {
+func NewPatientFromDB(id uuid.UUID, firstName, lastName, email, password, gender string, birth *time.Time, phone *string, lastLoginAt, createdAt, updatedAt time.Time, deletedAt *time.Time) *Patient {
 	emailVo, _ := vo.NewEmail(email)
 	passwordVo, _ := vo.NewPassword(password)
 	birthVo, _ := vo.NewBirthDate(birth)
@@ -102,9 +86,9 @@ func NewPatientFromDB(id uuid.UUID, firstName, lastName, email, password, gender
 		gender:        gender,
 		birth:         birthVo,
 		phone:         phoneVo,
-		lastLoginAt:   lastLoginAt,
+		LastLoginAt:   lastLoginAt,
 		createdAt:     createdAt,
-		updatedAt:     updatedAt,
-		deletedAt:     deletedAt,
+		UpdatedAt:     updatedAt,
+		DeletedAt:     deletedAt,
 	}
 }

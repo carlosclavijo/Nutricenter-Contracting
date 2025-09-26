@@ -111,7 +111,7 @@ func (c *Contract) Deliveries() []deliveries.Delivery {
 	return c.deliveries
 }
 
-func NewContractFromDb(id, aId, pId uuid.UUID, cType ContractType, cStatus ContractStatus, cDate, sDate time.Time, eDate *time.Time, cost int, street string, number int, cAt, uAt time.Time, dAt *time.Time) *Contract {
+func NewContractFromDb(id, aId, pId uuid.UUID, cType ContractType, cStatus ContractStatus, cDate, sDate time.Time, eDate *time.Time, cost int, cAt, uAt time.Time, dAt *time.Time) *Contract {
 	return &Contract{
 		AggregateRoot:   abstractions.NewAggregateRoot(id),
 		administratorId: aId,

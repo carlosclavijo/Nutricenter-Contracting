@@ -119,10 +119,11 @@ func (r *AdministratorRepository) GetById(ctx context.Context, id uuid.UUID) (*d
 
 func (r *AdministratorRepository) GetByEmail(ctx context.Context, email string) (*administrators.Administrator, error) {
 	var (
-		id                                                  uuid.UUID
-		firstName, lastName, emailStr, password, gender     string
-		birth, lastLoginAt, createdAt, updatedAt, deletedAt *time.Time
-		phone                                               *string
+		id                                              uuid.UUID
+		firstName, lastName, emailStr, password, gender string
+		lastLoginAt, createdAt, updatedAt               time.Time
+		birth, deletedAt                                *time.Time
+		phone                                           *string
 	)
 
 	query := `
@@ -190,10 +191,11 @@ func (r *AdministratorRepository) ExistByEmail(ctx context.Context, email string
 
 func (r *AdministratorRepository) Create(ctx context.Context, adm *administrators.Administrator) (*administrators.Administrator, error) {
 	var (
-		id                                                            uuid.UUID
-		firstName, lastName, email, gender                            string
-		birth, birthVal, lastLoginAt, createdAt, updatedAt, deletedAt *time.Time
-		phone, phoneVal                                               *string
+		id                                 uuid.UUID
+		firstName, lastName, email, gender string
+		lastLoginAt, createdAt, updatedAt  time.Time
+		birth, birthVal, deletedAt         *time.Time
+		phone, phoneVal                    *string
 	)
 
 	if adm.Birth() != nil {
@@ -226,47 +228,64 @@ func (r *AdministratorRepository) Create(ctx context.Context, adm *administrator
 
 func (r *AdministratorRepository) Update(ctx context.Context, adm *administrators.Administrator) (*administrators.Administrator, error) {
 	var (
-		id                                                            uuid.UUID
-		firstName, lastName, email, gender                            string
-		birth, birthVal, lastLoginAt, createdAt, updatedAt, deletedAt *time.Time
-		phone, phoneVal                                               *string
+		id                                 uuid.UUID
+		firstName, lastName, email, gender string
+		phone                              *string
+		lastLoginAt, createdAt, updatedAt  time.Time
+		birth, deletedAt                   *time.Time
 	)
 
 	if adm.Birth() != nil {
-		birthVal = adm.Birth().Value()
+		birth = adm.Birth().Value()
 	}
+
 	if adm.Phone() != nil {
-		s := adm.Phone().String()
-		phoneVal = s
+		phone = adm.Phone().String()
 	}
 
 	query := `
-		UPDATE administrator
-		SET first_name = $1, last_name = $2, email = $3, password = $4, gender = $5, birth = $6, phone = $7, updated_at = DEFAULT
-		WHERE id = $8
-		RETURNING id, first_name, last_name, email, gender, birth, phone, last_login_at, created_at, updated_at, deleted_at
-	`
+        UPDATE administrator
+        SET first_name = $1, last_name = $2, email = $3, password = $4, gender = $5, birth = $6, phone = $7, last_login_at = $8, updated_at = $9 
+        WHERE id = $10
+        RETURNING id, first_name, last_name, email, gender, birth, phone, last_login_at, created_at, updated_at, deleted_at
+    `
+
 	err := r.Db.QueryRowContext(
-		ctx, query, adm.FirstName, adm.LastName, adm.Email, adm.Password, adm.Gender(), birthVal, phoneVal).Scan(
+		ctx,
+		query,
+		adm.FirstName(),
+		adm.LastName(),
+		adm.Email().Value(),
+		adm.Password().String(),
+		adm.Gender(),
+		birth,
+		phone,
+		adm.LastLoginAt,
+		adm.UpdatedAt,
+		adm.Id(),
+	).Scan(
 		&id, &firstName, &lastName, &email, &gender, &birth, &phone, &lastLoginAt, &createdAt, &updatedAt, &deletedAt,
 	)
 
 	if err != nil {
-		log.Printf("[repository:administrator][Update] error executing SQL query '%s': %v", query, err)
+		log.Printf("[repository:administrator][Update] error executing SQL query: %v", err)
 		return nil, fmt.Errorf("scan failed: %w", err)
 	}
 
-	admin := administrators.NewAdministratorFromDB(id, firstName, lastName, email, "", gender, birth, phone, lastLoginAt, createdAt, updatedAt, deletedAt)
-	log.Printf("[repository:administrator][Update] successfully updated administrator %v", admin)
-	return admin, nil
+	updatedAdmin := administrators.NewAdministratorFromDB(
+		id, firstName, lastName, email, adm.Password().String(), gender, birth, phone, lastLoginAt, createdAt, updatedAt, deletedAt,
+	)
+
+	return updatedAdmin, nil
 }
 
 func (r *AdministratorRepository) Delete(ctx context.Context, id uuid.UUID) (*administrators.Administrator, error) {
 	var (
-		idNew                                               uuid.UUID
-		firstName, lastName, email, gender                  string
-		birth, lastLoginAt, createdAt, updatedAt, deletedAt *time.Time
-		phone                                               *string
+		idNew                              uuid.UUID
+		firstName, lastName, email, gender string
+		lastLoginAt, createdAt, updatedAt  time.Time
+		birth, deletedAt                   *time.Time
+		phone                              *string
 	)
 
 	query := `
@@ -291,10 +310,11 @@ func (r *AdministratorRepository) Delete(ctx context.Context, id uuid.UUID) (*ad
 
 func (r *AdministratorRepository) Restore(ctx context.Context, id uuid.UUID) (*administrators.Administrator, error) {
 	var (
-		idNew                                               uuid.UUID
-		firstName, lastName, email, gender                  string
-		birth, lastLoginAt, createdAt, updatedAt, deletedAt *time.Time
-		phone                                               *string
+		idNew                              uuid.UUID
+		firstName, lastName, email, gender string
+		lastLoginAt, createdAt, updatedAt  time.Time
+		birth, deletedAt                   *time.Time
+		phone                              *string
 	)
 
 	query := `
@@ -325,7 +345,7 @@ func (r *AdministratorRepository) CountAll(ctx context.Context) (int, error) {
 	`
 	err := r.Db.QueryRowContext(ctx, query).Scan(&count)
 	if err != nil {
-		log.Printf("infrastructure/persistence/repositories error executing SQL query in CountAll: %v", err)
+		log.Printf("[repository:administrator][CountAll] error executing SQL query in CountAll: %v", err)
 		return 0, err
 	}
 	return count, nil
@@ -339,7 +359,7 @@ func (r *AdministratorRepository) CountActive(ctx context.Context) (int, error) 
 	`
 	err := r.Db.QueryRowContext(ctx, query).Scan(&count)
 	if err != nil {
-		log.Printf("infrastructure/persistence/repositories error executing SQL query in CountActive: %v", err)
+		log.Printf("[repository:administrator][CountActive] error executing SQL query in CountActive: %v", err)
 		return 0, err
 	}
 	return count, nil
@@ -353,7 +373,7 @@ func (r *AdministratorRepository) CountDeleted(ctx context.Context) (int, error)
 	`
 	err := r.Db.QueryRowContext(ctx, query).Scan(&count)
 	if err != nil {
-		log.Printf("infrastructure/persistence/repositories error executing SQL query in CountDeleted: %v", err)
+		log.Printf("[repository:administrator][CountDeleted] error executing SQL query in CountDeleted: %v", err)
 		return 0, err
 	}
 	return count, nil

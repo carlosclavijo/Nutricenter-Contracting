@@ -1,4 +1,4 @@
-package controller
+package controllers
 
 import (
 	"database/sql"
@@ -13,7 +13,6 @@ import (
 	"github.com/carlosclavijo/Nutricenter-Contracting/internal/web/helpers"
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
-	"golang.org/x/crypto/bcrypt"
 	"log"
 	"net/http"
 	"time"
@@ -37,7 +36,7 @@ type adminFull struct {
 	FirstName string     `json:"first_name"`
 	LastName  string     `json:"last_name"`
 	Email     string     `json:"email"`
-	Password  string     `json:"password,omitempty"`
+	Password  string     `json:"password"`
 	Gender    string     `json:"gender"`
 	Birth     *time.Time `json:"birth,omitempty"`
 	Phone     *string    `json:"phone,omitempty"`
@@ -228,8 +227,12 @@ func (h *AdministratorController) LoginAdministrator(w http.ResponseWriter, r *h
 		return
 	}
 
-	qry := queries.GetAdministratorByEmailQuery{Email: req.Email}
-	admin, err := h.qryHandler.HandleGetByEmail(r.Context(), qry)
+	qry := commands.LoginAdministratorCommand{
+		Email:    req.Email,
+		Password: req.Password,
+	}
+
+	admin, err := h.cmdHandler.HandleLogin(r.Context(), qry)
 	if err != nil {
 		log.Printf("[controller:administrator][Login] failed to retrieve administrator with Email '%s': %v", req.Email, err)
 		writeJSON(w, http.StatusBadRequest, helpers.Response[any]{
@@ -237,31 +240,6 @@ func (h *AdministratorController) LoginAdministrator(w http.ResponseWriter, r *h
 			Error: &helpers.Error{
 				Code:    "LOGIN_FAILED",
 				Message: "Could not retrieve administrator",
-			},
-		})
-		return
-	}
-
-	hashedPassword, err := hashPassword(req.Password)
-	if err != nil {
-		log.Printf("[controller:administrator][Login] failed to hash password %v", err)
-		writeJSON(w, http.StatusBadRequest, helpers.Response[any]{
-			Success: false,
-			Error: &helpers.Error{
-				Code:    "HASHING_PASSWORD_FAILED",
-				Message: "Could not hash password",
-			},
-		})
-		return
-	}
-
-	if err = bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(req.Password)); err != nil || req.Email != admin.Email().Value() {
-		log.Printf("[controller:administrator][Login] login failed, invalid credentials for email=%s", req.Email)
-		writeJSON(w, http.StatusUnauthorized, helpers.Response[any]{
-			Success: false,
-			Error: &helpers.Error{
-				Code:    "COMPARING_HASHED_PASSWORD_FAILED",
-				Message: "Invalid credentials for email",
 			},
 		})
 		return
@@ -296,24 +274,11 @@ func (h *AdministratorController) CreateAdministrator(w http.ResponseWriter, r *
 		return
 	}
 
-	hashedPassword, err := hashPassword(req.Password)
-	if err != nil {
-		log.Printf("[controller:administrator][CreateAdministrator] failed to hash password %v", err)
-		writeJSON(w, http.StatusBadRequest, helpers.Response[any]{
-			Success: false,
-			Error: &helpers.Error{
-				Code:    "HASHING_PASSWORD_FAILED",
-				Message: "Could not hash password",
-			},
-		})
-		return
-	}
-
 	cmd := commands.CreateAdministratorCommand{
 		FirstName: req.FirstName,
 		LastName:  req.LastName,
 		Email:     req.Email,
-		Password:  hashedPassword,
+		Password:  req.Password,
 		Gender:    req.Gender,
 		Birth:     req.Birth,
 		Phone:     req.Phone,
@@ -342,13 +307,13 @@ func (h *AdministratorController) CreateAdministrator(w http.ResponseWriter, r *
 func (h *AdministratorController) UpdateAdministrator(w http.ResponseWriter, r *http.Request) {
 	var req struct {
 		Id        string     `json:"id"`
-		FirstName string     `json:"first_name"`
-		LastName  string     `json:"last_name"`
-		Email     string     `json:"email"`
-		Password  string     `json:"password"`
-		Gender    string     `json:"gender"`
-		Birth     *time.Time `json:"birth"`
-		Phone     *string    `json:"phone"`
+		FirstName string     `json:"first_name,omitempty"`
+		LastName  string     `json:"last_name,omitempty"`
+		Email     string     `json:"email,omitempty"`
+		Password  string     `json:"password,omitempty"`
+		Gender    string     `json:"gender,omitempty"`
+		Birth     *time.Time `json:"birth,omitempty"`
+		Phone     *string    `json:"phone,omitempty"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -549,14 +514,6 @@ func writeJSON(w http.ResponseWriter, status int, payload any) {
 	}
 }
 
-func hashPassword(password string) (string, error) {
-	hashedBytes, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	if err != nil {
-		return "", err
-	}
-	return string(hashedBytes), nil
-}
-
 func mapToAdminFull(admin *administrators.Administrator) adminFull {
 	var birthTm *time.Time
 	if admin.Birth() != nil {
@@ -579,10 +536,10 @@ func mapToAdminFull(admin *administrators.Administrator) adminFull {
 		Gender:    admin.Gender(),
 		Birth:     birthTm,
 		Phone:     phoneStr,
-		LastLogin: *admin.LastLoginAt(),
-		CreatedAt: *admin.CreatedAt(),
-		UpdatedAt: *admin.UpdatedAt(),
-		DeletedAt: admin.DeletedAt(),
+		LastLogin: admin.LastLoginAt,
+		CreatedAt: admin.CreatedAt(),
+		UpdatedAt: admin.UpdatedAt,
+		DeletedAt: admin.DeletedAt,
 	}
 }
 

@@ -45,7 +45,7 @@ func (a administratorFactory) Create(firstName, lastName, email, password, gende
 	}
 	phoneVO, err := valueobjects.NewPhone(phone)
 	if err != nil {
-		log.Printf("[factory:administrator] Error creating phone '%s' object: %v", phone, err)
+		log.Printf("[factory:administrator] Error creating phone '%d' object: %v", phone, err)
 		return nil, err
 	}
 

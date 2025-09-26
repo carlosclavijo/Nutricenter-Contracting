@@ -2,8 +2,8 @@ package helpers
 
 type Response[T any] struct {
 	Success bool   `json:"success"`
-	Data    T      `json:"data,omitempty"`
 	Length  int    `json:"length,omitempty"`
+	Data    T      `json:"data,omitempty"`
 	Error   *Error `json:"error,omitempty"`
 }
 

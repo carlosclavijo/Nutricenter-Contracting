@@ -14,6 +14,15 @@ func (h *PatientHandler) HandleRestore(ctx context.Context, id uuid.UUID) (*pati
 		return nil, errors.New("the id is not valid")
 	}
 
+	exist, err := h.repository.ExistById(ctx, id)
+	if err != nil {
+		log.Printf("[handler:patient][HandleRestore] error verifying if Patient exists: %v", err)
+		return nil, err
+	} else if !exist {
+		log.Printf("[handler:patient][HandleRestore] the Patient doesn't exists '%v'", id)
+		return nil, errors.New("patient not found")
+	}
+
 	admin, err := h.repository.Restore(ctx, id)
 	if err != nil {
 		log.Printf("[handler:patient][HandleRestore] error Deleting Patient: %v", err)

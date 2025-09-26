@@ -35,7 +35,7 @@ func (c contractFactory) Create(administratorId, patientId uuid.UUID, contractTy
 		return nil, errors.New("startDate is not before two days after tomorrow")
 	}
 	if cost <= 0 {
-		log.Printf("[factory:contract] cost '%d' suppose to be a positive number", contractType)
+		log.Printf("[factory:contract] cost '%v' suppose to be a positive number", contractType)
 		return nil, errors.New("cost '%d' suppose to be a positive number")
 	}
 	if street == "" {

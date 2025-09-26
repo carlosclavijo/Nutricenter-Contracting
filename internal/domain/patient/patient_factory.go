@@ -45,7 +45,7 @@ func (a patientFactory) Create(firstName, lastName, email, password, gender stri
 	}
 	phoneVO, err := valueobjects.NewPhone(phone)
 	if err != nil {
-		log.Printf("[factory:patient] Error creating phone '%s' object: %v", phone, err)
+		log.Printf("[factory:patient] Error creating phone '%d' object: %v", phone, err)
 		return nil, err
 	}
 

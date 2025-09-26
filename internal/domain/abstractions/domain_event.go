@@ -16,3 +16,11 @@ func NewDomainEvent() *DomainEvent {
 		occurredOn: time.Now(),
 	}
 }
+
+func (d *DomainEvent) Id() uuid.UUID {
+	return d.id
+}
+
+func (d *DomainEvent) OccurredOn() time.Time {
+	return d.occurredOn
+}

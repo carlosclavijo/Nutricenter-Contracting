@@ -2,20 +2,19 @@ package web
 
 import (
 	"database/sql"
-	administrator "github.com/carlosclavijo/Nutricenter-Contracting/internal/web/controllers/administrator"
-	patient "github.com/carlosclavijo/Nutricenter-Contracting/internal/web/controllers/patient"
+	administrator "github.com/carlosclavijo/Nutricenter-Contracting/internal/web/controllers"
 	"github.com/go-chi/chi/v5"
 )
 
 type Routes struct {
 	AdministratorController *administrator.AdministratorController
-	PatientController       *patient.PatientController
+	PatientController       *administrator.PatientController
 }
 
 func NewRoutes(db *sql.DB) *Routes {
 	return &Routes{
 		AdministratorController: administrator.NewAdministratorHandler(db),
-		PatientController:       patient.NewPatientHandler(db),
+		PatientController:       administrator.NewPatientHandler(db),
 	}
 }
 
