@@ -16,6 +16,10 @@ func NewEntity(id uuid.UUID) *Entity {
 	}
 }
 
+func (e *Entity) DomainEvents() []DomainEvent {
+	return e.domainEvents
+}
+
 func (e *Entity) AddDomainEvent(event DomainEvent) {
 	e.domainEvents = append(e.domainEvents, event)
 }

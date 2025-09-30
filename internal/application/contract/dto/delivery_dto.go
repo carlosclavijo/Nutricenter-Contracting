@@ -11,4 +11,7 @@ type DeliveryDTO struct {
 	Date       time.Time `json:"date"`
 	Street     string    `json:"street"`
 	Number     string    `json:"number"`
+	Latitude   float64   `json:"latitude"`
+	Longitude  float64   `json:"longitude"`
+	Status     string    `json:"status"`
 }

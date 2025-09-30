@@ -33,6 +33,12 @@ func (h *AdministratorHandler) HandleUpdate(ctx context.Context, cmd commands.Up
 		return nil, err
 	}
 
+	gender, err := valueobjects.ParseGender(cmd.Gender)
+	if err != nil {
+		log.Printf("[handler:administrator][HandleUpdate] error parsing gender: %v", err)
+		return nil, err
+	}
+
 	birth, err := valueobjects.NewBirthDate(cmd.Birth)
 	if err != nil {
 		log.Printf("[handler:administrator][HandleUpdate] error parsing birth '%v': %v", cmd.Birth, err)
@@ -50,7 +56,7 @@ func (h *AdministratorHandler) HandleUpdate(ctx context.Context, cmd commands.Up
 		return nil, err
 	}
 
-	admin := administrators.NewAdministrator(cmd.FirstName, cmd.LastName, email, password, cmd.Gender, birth, phone)
+	admin := administrators.NewAdministrator(cmd.FirstName, cmd.LastName, email, password, gender, birth, phone)
 	admin.AggregateRoot = abstractions.NewAggregateRoot(cmd.Id)
 
 	admin, err = h.repository.Update(ctx, admin)

@@ -11,4 +11,6 @@ type UpdateDeliveryDayListCommand struct {
 	LastDate   time.Time
 	Street     string
 	Number     int
+	Latitude   float64
+	Longitude  float64
 }

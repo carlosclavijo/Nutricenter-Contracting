@@ -1,6 +1,6 @@
 package handlers
 
-import contracts "github.com/carlosclavijo/Nutricenter-Contracting/internal/domain/contract"
+import "github.com/carlosclavijo/Nutricenter-Contracting/internal/domain/contract"
 
 type ContractHandler struct {
 	repository contracts.ContractRepository

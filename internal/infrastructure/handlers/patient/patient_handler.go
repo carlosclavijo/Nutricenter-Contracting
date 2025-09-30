@@ -1,8 +1,6 @@
 package handlers
 
-import (
-	patients "github.com/carlosclavijo/Nutricenter-Contracting/internal/domain/patient"
-)
+import "github.com/carlosclavijo/Nutricenter-Contracting/internal/domain/patient"
 
 type PatientHandler struct {
 	repository patients.PatientRepository

@@ -5,17 +5,21 @@ import "fmt"
 type ContractStatus string
 
 const (
-	Created    ContractStatus = "created"
-	InProgress ContractStatus = "active"
-	Completed  ContractStatus = "completed"
+	Created   ContractStatus = "CREATED"
+	Active    ContractStatus = "ACTIVE"
+	Completed ContractStatus = "COMPLETED"
 )
+
+func (s ContractStatus) String() string {
+	return string(s)
+}
 
 func ParseContractStatus(s string) (ContractStatus, error) {
 	switch s {
 	case "created":
 		return Created, nil
-	case "inprogress":
-		return InProgress, nil
+	case "active":
+		return Active, nil
 	case "completed":
 		return Completed, nil
 	default:

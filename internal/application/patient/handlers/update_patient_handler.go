@@ -33,6 +33,12 @@ func (h *PatientHandler) HandleUpdate(ctx context.Context, cmd commands.UpdatePa
 		return nil, err
 	}
 
+	gender, err := valueobjects.ParseGender(cmd.Gender)
+	if err != nil {
+		log.Printf("[handler:patient][HandleUpdate] error parsing gender: %v", err)
+		return nil, err
+	}
+
 	birth, err := valueobjects.NewBirthDate(cmd.Birth)
 	if err != nil {
 		log.Printf("[handler:patient][HandleUpdate] error parsing birth: %v", err)
@@ -50,7 +56,7 @@ func (h *PatientHandler) HandleUpdate(ctx context.Context, cmd commands.UpdatePa
 		return nil, err
 	}
 
-	patient := patients.NewPatient(cmd.FirstName, cmd.LastName, email, password, cmd.Gender, birth, phone)
+	patient := patients.NewPatient(cmd.FirstName, cmd.LastName, email, password, gender, birth, phone)
 	patient.AggregateRoot = abstractions.NewAggregateRoot(cmd.Id)
 
 	patient, err = h.repository.Update(ctx, patient)

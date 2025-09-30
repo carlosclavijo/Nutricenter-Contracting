@@ -7,9 +7,13 @@ import (
 type ContractType string
 
 const (
-	Monthly   ContractType = "monthly"
-	HalfMonth ContractType = "half-month"
+	Monthly   ContractType = "MONTHLY"
+	HalfMonth ContractType = "HALF-MONTH"
 )
+
+func (t ContractType) String() string {
+	return string(t)
+}
 
 func ParseContractType(s string) (ContractType, error) {
 	switch s {

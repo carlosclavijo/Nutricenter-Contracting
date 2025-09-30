@@ -29,15 +29,14 @@ func (r *AdministratorRepository) GetAll(ctx context.Context) (*[]dto.Administra
 	}
 
 	defer func(rows *sql.Rows) {
-		if err := rows.Close(); err != nil {
+		if err = rows.Close(); err != nil {
 			log.Printf("[repository:administrator][GetAll] failed to close rows: %v", err)
+			return
 		}
 	}(rows)
 	for rows.Next() {
 		var admin dto.AdministratorDTO
-		err := rows.Scan(
-			&admin.Id, &admin.FirstName, &admin.LastName, &admin.Email, &admin.Gender, &admin.Birth, &admin.Phone,
-		)
+		err = rows.Scan(&admin.Id, &admin.FirstName, &admin.LastName, &admin.Email, &admin.Gender, &admin.Birth, &admin.Phone)
 		if err != nil {
 			log.Printf("[repository:administrator][GetAll] error reading adminDTO for a slice of admins: %v", err)
 			return nil, fmt.Errorf("scan failed: %w", err)
@@ -68,7 +67,7 @@ func (r *AdministratorRepository) GetList(ctx context.Context) (*[]dto.Administr
 	}
 
 	defer func(rows *sql.Rows) {
-		err := rows.Close()
+		err = rows.Close()
 		if err != nil {
 			log.Printf("[repository:administrator][GetList] failed to close rows: %v", err)
 		}
@@ -77,7 +76,7 @@ func (r *AdministratorRepository) GetList(ctx context.Context) (*[]dto.Administr
 	for rows.Next() {
 		var admin dto.AdministratorDTO
 
-		err := rows.Scan(
+		err = rows.Scan(
 			&admin.Id, &admin.FirstName, &admin.LastName, &admin.Email, &admin.Gender, &admin.Birth, &admin.Phone,
 		)
 		if err != nil {
@@ -104,10 +103,7 @@ func (r *AdministratorRepository) GetById(ctx context.Context, id uuid.UUID) (*d
 		FROM administrator
 		WHERE id = $1
 	`
-	err := r.Db.QueryRowContext(ctx, query, id).Scan(
-		&admin.Id, &admin.FirstName, &admin.LastName, &admin.Email, &admin.Gender, &admin.Birth, &admin.Phone,
-	)
-
+	err := r.Db.QueryRowContext(ctx, query, id).Scan(&admin.Id, &admin.FirstName, &admin.LastName, &admin.Email, &admin.Gender, &admin.Birth, &admin.Phone)
 	if err != nil {
 		log.Printf("[repository:administrator][GetById] error executing SQL query '%s': %v", query, err)
 		return nil, fmt.Errorf("query failed: %w", err)
@@ -251,18 +247,7 @@ func (r *AdministratorRepository) Update(ctx context.Context, adm *administrator
     `
 
 	err := r.Db.QueryRowContext(
-		ctx,
-		query,
-		adm.FirstName(),
-		adm.LastName(),
-		adm.Email().Value(),
-		adm.Password().String(),
-		adm.Gender(),
-		birth,
-		phone,
-		adm.LastLoginAt,
-		adm.UpdatedAt,
-		adm.Id(),
+		ctx, query, adm.FirstName(), adm.LastName(), adm.Email().Value(), adm.Password().String(), adm.Gender(), birth, phone, adm.LastLoginAt, adm.UpdatedAt, adm.Id(),
 	).Scan(
 		&id, &firstName, &lastName, &email, &gender, &birth, &phone, &lastLoginAt, &createdAt, &updatedAt, &deletedAt,
 	)
@@ -281,7 +266,6 @@ func (r *AdministratorRepository) Update(ctx context.Context, adm *administrator
 
 func (r *AdministratorRepository) Delete(ctx context.Context, id uuid.UUID) (*administrators.Administrator, error) {
 	var (
-		idNew                              uuid.UUID
 		firstName, lastName, email, gender string
 		lastLoginAt, createdAt, updatedAt  time.Time
 		birth, deletedAt                   *time.Time
@@ -292,10 +276,10 @@ func (r *AdministratorRepository) Delete(ctx context.Context, id uuid.UUID) (*ad
 		UPDATE administrator
 		SET deleted_at = NOW() 
 		WHERE id = $1 
-		RETURNING id, first_name, last_name, email, gender, birth, phone, last_login_at, created_at, updated_at, deleted_at
+		RETURNING first_name, last_name, email, gender, birth, phone, last_login_at, created_at, updated_at, deleted_at
 	`
 	err := r.Db.QueryRowContext(ctx, query, id).Scan(
-		&idNew, &firstName, &lastName, &email, &gender, &birth, &phone, &lastLoginAt, &createdAt, &updatedAt, &deletedAt,
+		&firstName, &lastName, &email, &gender, &birth, &phone, &lastLoginAt, &createdAt, &updatedAt, &deletedAt,
 	)
 
 	if err != nil {
@@ -353,7 +337,8 @@ func (r *AdministratorRepository) CountAll(ctx context.Context) (int, error) {
 
 func (r *AdministratorRepository) CountActive(ctx context.Context) (int, error) {
 	var count int
-	query := `SELECT COUNT(*)
+	query := `
+		SELECT COUNT(*)
 		FROM administrator 
 		WHERE deleted_at IS NULL
 	`

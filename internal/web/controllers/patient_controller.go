@@ -524,7 +524,7 @@ func mapToPatientFull(admin *patients.Patient) patientFull {
 		LastName:  admin.LastName(),
 		Email:     admin.Email().Value(),
 		Password:  "",
-		Gender:    admin.Gender(),
+		Gender:    admin.Gender().String(),
 		Birth:     birthTm,
 		Phone:     phoneStr,
 		LastLogin: admin.LastLoginAt,
