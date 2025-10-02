@@ -62,10 +62,10 @@ func (h *PatientController) GetAllPatients(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	writeJSON(w, http.StatusOK, helpers.Response[[]dto.PatientDTO]{
+	writeJSON(w, http.StatusOK, helpers.Response[[]*dto.PatientDTO]{
 		Success: true,
-		Data:    *ptnts,
-		Length:  len(*ptnts),
+		Data:    ptnts,
+		Length:  len(ptnts),
 	})
 }
 
@@ -85,10 +85,10 @@ func (h *PatientController) GetListPatients(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	writeJSON(w, http.StatusOK, helpers.Response[[]dto.PatientDTO]{
+	writeJSON(w, http.StatusOK, helpers.Response[[]*dto.PatientDTO]{
 		Success: true,
-		Data:    *ptnts,
-		Length:  len(*ptnts),
+		Data:    ptnts,
+		Length:  len(ptnts),
 	})
 }
 
@@ -144,10 +144,9 @@ func (h *PatientController) GetPatientByEmail(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	ptnFull := mapToPatientFull(ptnt)
-	writeJSON(w, http.StatusOK, helpers.Response[patientFull]{
+	writeJSON(w, http.StatusOK, helpers.Response[dto.PatientDTO]{
 		Success: true,
-		Data:    ptnFull,
+		Data:    *ptnt,
 	})
 }
 

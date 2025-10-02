@@ -1,6 +1,7 @@
 package dto
 
 import (
+	"github.com/carlosclavijo/Nutricenter-Contracting/internal/domain/administrator"
 	"time"
 )
 
@@ -12,4 +13,20 @@ type AdministratorDTO struct {
 	Gender    string     `json:"gender"`
 	Birth     *time.Time `json:"birth,omitempty"`
 	Phone     *string    `json:"phone,omitempty"`
+}
+
+func MapToAdministratorDTO(administrator *administrators.Administrator) *AdministratorDTO {
+	if administrator == nil {
+		return nil
+	}
+
+	return &AdministratorDTO{
+		Id:        administrator.Id().String(),
+		FirstName: administrator.FirstName(),
+		LastName:  administrator.LastName(),
+		Email:     administrator.Email().Value(),
+		Gender:    administrator.Gender().String(),
+		Birth:     administrator.Birth().Value(),
+		Phone:     administrator.Phone().String(),
+	}
 }

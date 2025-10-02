@@ -32,15 +32,18 @@ func NewDelivery(contractId uuid.UUID, date time.Time, street string, number int
 	}
 }
 
-func NewDeliveryFromDB(id, contractId uuid.UUID, date time.Time, street string, number int, coordinates valueobjects.Coordinates, status DeliveryStatus) *Delivery {
+func NewDeliveryFromDB(id, contractId uuid.UUID, date time.Time, street string, number int, latitude, longitude float64, status string) *Delivery {
+	c, _ := valueobjects.NewCoordinates(latitude, longitude)
+	stt, _ := ParseDeliveryStatus(status)
+
 	return &Delivery{
 		Entity:      abstractions.NewEntity(id),
 		contractId:  contractId,
 		date:        date,
 		street:      street,
 		number:      number,
-		coordinates: coordinates,
-		status:      status,
+		coordinates: *c,
+		status:      stt,
 	}
 }
 

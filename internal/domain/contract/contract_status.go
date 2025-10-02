@@ -5,23 +5,32 @@ import "fmt"
 type ContractStatus string
 
 const (
-	Created   ContractStatus = "CREATED"
-	Active    ContractStatus = "ACTIVE"
-	Completed ContractStatus = "COMPLETED"
+	Created  ContractStatus = "C" // Created
+	Active   ContractStatus = "A" // Active
+	Finished ContractStatus = "F" // Finished
 )
 
 func (s ContractStatus) String() string {
-	return string(s)
+	switch s {
+	case Created:
+		return "created"
+	case Active:
+		return "active"
+	case Finished:
+		return "finished"
+	default:
+		return "unknown"
+	}
 }
 
 func ParseContractStatus(s string) (ContractStatus, error) {
 	switch s {
-	case "created":
+	case "created", "C":
 		return Created, nil
-	case "active":
+	case "active", "A":
 		return Active, nil
-	case "completed":
-		return Completed, nil
+	case "finished", "F":
+		return Finished, nil
 	default:
 		return "", fmt.Errorf("invalid contract status: %s", s)
 	}

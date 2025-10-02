@@ -1,25 +1,30 @@
 package contracts
 
-import (
-	"fmt"
-)
+import "fmt"
 
 type ContractType string
 
 const (
-	Monthly   ContractType = "MONTHLY"
-	HalfMonth ContractType = "HALF-MONTH"
+	Monthly   ContractType = "M" // Monthly
+	HalfMonth ContractType = "H" // Half-Month
 )
 
 func (t ContractType) String() string {
-	return string(t)
+	switch t {
+	case Monthly:
+		return "monthly"
+	case HalfMonth:
+		return "half-month"
+	default:
+		return "unknown"
+	}
 }
 
 func ParseContractType(s string) (ContractType, error) {
 	switch s {
-	case "monthly":
+	case "monthly", "M":
 		return Monthly, nil
-	case "half-month":
+	case "half-month", "H":
 		return HalfMonth, nil
 	default:
 		return "", fmt.Errorf("invalid contract type '%s'", s)

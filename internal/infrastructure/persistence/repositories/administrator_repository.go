@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"github.com/carlosclavijo/Nutricenter-Contracting/internal/application/administrator/dto"
 	"github.com/carlosclavijo/Nutricenter-Contracting/internal/domain/administrator"
 	"github.com/google/uuid"
 	"log"
@@ -15,11 +14,18 @@ type AdministratorRepository struct {
 	Db *sql.DB
 }
 
-func (r *AdministratorRepository) GetAll(ctx context.Context) (*[]dto.AdministratorDTO, error) {
-	var admins []dto.AdministratorDTO
+func (r *AdministratorRepository) GetAll(ctx context.Context) ([]*administrators.Administrator, error) {
+	var (
+		admins                             []*administrators.Administrator
+		id                                 uuid.UUID
+		firstName, lastName, email, gender string
+		lastLoginAt, createdAt, updatedAt  time.Time
+		birth, deletedAt                   *time.Time
+		phone                              *string
+	)
 
 	query := `
-		SELECT id, first_name, last_name, email, gender, birth, phone
+		SELECT id, first_name, last_name, email, gender, birth, phone, last_login_at, created_at, updated_at, deleted_at
 		FROM administrator
 	`
 	rows, err := r.Db.QueryContext(ctx, query)
@@ -35,12 +41,14 @@ func (r *AdministratorRepository) GetAll(ctx context.Context) (*[]dto.Administra
 		}
 	}(rows)
 	for rows.Next() {
-		var admin dto.AdministratorDTO
-		err = rows.Scan(&admin.Id, &admin.FirstName, &admin.LastName, &admin.Email, &admin.Gender, &admin.Birth, &admin.Phone)
+		err = rows.Scan(
+			&id, &firstName, &lastName, &email, &gender, &birth, &phone, &lastLoginAt, &createdAt, &updatedAt, &deletedAt,
+		)
 		if err != nil {
 			log.Printf("[repository:administrator][GetAll] error reading adminDTO for a slice of admins: %v", err)
 			return nil, fmt.Errorf("scan failed: %w", err)
 		}
+		admin := administrators.NewAdministratorFromDB(id, firstName, lastName, email, "restricted", gender, birth, phone, lastLoginAt, createdAt, updatedAt, deletedAt)
 		admins = append(admins, admin)
 	}
 
@@ -49,14 +57,21 @@ func (r *AdministratorRepository) GetAll(ctx context.Context) (*[]dto.Administra
 		return nil, fmt.Errorf("rows iteration error: %w", err)
 	}
 	log.Printf("[repository:administrator][GetAll] successfully fetched %d administrators", len(admins))
-	return &admins, nil
+	return admins, nil
 }
 
-func (r *AdministratorRepository) GetList(ctx context.Context) (*[]dto.AdministratorDTO, error) {
-	var admins []dto.AdministratorDTO
+func (r *AdministratorRepository) GetList(ctx context.Context) ([]*administrators.Administrator, error) {
+	var (
+		admins                             []*administrators.Administrator
+		id                                 uuid.UUID
+		firstName, lastName, email, gender string
+		lastLoginAt, createdAt, updatedAt  time.Time
+		birth, deletedAt                   *time.Time
+		phone                              *string
+	)
 
 	query := `
-		SELECT id, first_name, last_name, email, gender, birth, phone
+		SELECT id, first_name, last_name, email, gender, birth, phone, last_login_at, created_at, updated_at, deleted_at
 		FROM administrator
 		WHERE deleted_at IS NULL
 	`
@@ -74,15 +89,15 @@ func (r *AdministratorRepository) GetList(ctx context.Context) (*[]dto.Administr
 	}(rows)
 
 	for rows.Next() {
-		var admin dto.AdministratorDTO
-
 		err = rows.Scan(
-			&admin.Id, &admin.FirstName, &admin.LastName, &admin.Email, &admin.Gender, &admin.Birth, &admin.Phone,
+			&id, &firstName, &lastName, &email, &gender, &birth, &phone, &lastLoginAt, &createdAt, &updatedAt, &deletedAt,
 		)
 		if err != nil {
 			log.Printf("[repository:administrator][GetList] error reading adminDTO for a slice of admins: %v", err)
 			return nil, fmt.Errorf("scan failed: %w", err)
 		}
+
+		admin := administrators.NewAdministratorFromDB(id, firstName, lastName, email, "restricted", gender, birth, phone, lastLoginAt, createdAt, updatedAt, deletedAt)
 		admins = append(admins, admin)
 	}
 
@@ -92,51 +107,60 @@ func (r *AdministratorRepository) GetList(ctx context.Context) (*[]dto.Administr
 	}
 
 	log.Printf("[repository:administrator][GetList] successfully fetched %d administrators", len(admins))
-	return &admins, nil
+	return admins, nil
 }
 
-func (r *AdministratorRepository) GetById(ctx context.Context, id uuid.UUID) (*dto.AdministratorDTO, error) {
-	var admin dto.AdministratorDTO
+func (r *AdministratorRepository) GetById(ctx context.Context, id uuid.UUID) (*administrators.Administrator, error) {
+	var (
+		firstName, lastName, email, gender string
+		lastLoginAt, createdAt, updatedAt  time.Time
+		birth, deletedAt                   *time.Time
+		phone                              *string
+	)
 
 	query := `
-		SELECT id, first_name, last_name, email, gender, birth, phone
+		SELECT first_name, last_name, email, gender, birth, phone, last_login_at, created_at, updated_at, deleted_at
 		FROM administrator
 		WHERE id = $1
 	`
-	err := r.Db.QueryRowContext(ctx, query, id).Scan(&admin.Id, &admin.FirstName, &admin.LastName, &admin.Email, &admin.Gender, &admin.Birth, &admin.Phone)
+	err := r.Db.QueryRowContext(ctx, query, id).Scan(
+		&firstName, &lastName, &email, &gender, &birth, &phone, &lastLoginAt, &createdAt, &updatedAt, &deletedAt,
+	)
 	if err != nil {
 		log.Printf("[repository:administrator][GetById] error executing SQL query '%s': %v", query, err)
 		return nil, fmt.Errorf("query failed: %w", err)
 	}
 
+	log.Println(gender)
+	admin := *administrators.NewAdministratorFromDB(id, firstName, lastName, email, "restricted", gender, birth, phone, lastLoginAt, createdAt, updatedAt, deletedAt)
 	log.Printf("[repository:administrator][GetById] successfully fetched administrator")
 	return &admin, nil
 }
 
 func (r *AdministratorRepository) GetByEmail(ctx context.Context, email string) (*administrators.Administrator, error) {
 	var (
-		id                                              uuid.UUID
-		firstName, lastName, emailStr, password, gender string
-		lastLoginAt, createdAt, updatedAt               time.Time
-		birth, deletedAt                                *time.Time
-		phone                                           *string
+		id                                    uuid.UUID
+		firstName, lastName, password, gender string
+		lastLoginAt, createdAt, updatedAt     time.Time
+		birth, deletedAt                      *time.Time
+		phone                                 *string
 	)
 
 	query := `
-		SELECT id, first_name, last_name, email, password, gender, birth, phone, last_login_at, created_at, updated_at, deleted_at
+		SELECT id, first_name, last_name, password, gender, birth, phone, last_login_at, created_at, updated_at, deleted_at
 		FROM administrator
 		WHERE email = $1
 	`
 
 	err := r.Db.QueryRowContext(ctx, query, email).Scan(
-		&id, &firstName, &lastName, &emailStr, &password, &gender, &birth, &phone, &lastLoginAt, &createdAt, &updatedAt, &deletedAt,
+		&id, &firstName, &lastName, &password, &gender, &birth, &phone, &lastLoginAt, &createdAt, &updatedAt, &deletedAt,
 	)
 	if err != nil {
 		log.Printf("[repository:administrator][GetByEmail] error executing SQL query '%s'\nfailed to fetch administrator: %v", query, err)
 		return nil, fmt.Errorf("query failed: %w", err)
 	}
 
-	admin := administrators.NewAdministratorFromDB(id, firstName, lastName, emailStr, password, gender, birth, phone, lastLoginAt, createdAt, updatedAt, deletedAt)
+	admin := administrators.NewAdministratorFromDB(id, firstName, lastName, email, password, gender, birth, phone, lastLoginAt, createdAt, updatedAt, deletedAt)
 	log.Printf("[repository:administrator][GetByEmail] successfully fetched administrator")
 	return admin, nil
 }

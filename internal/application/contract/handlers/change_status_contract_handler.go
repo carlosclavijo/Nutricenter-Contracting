@@ -21,8 +21,8 @@ func (h *ContractHandler) HandleChangeStatus(ctx context.Context, cmd commands.C
 		return nil, err
 	}
 
-	s := contract.ContractStatus
-	if s == status.String() {
+	s := contract.ContractStatus()
+	if s == status {
 		log.Printf("[handler:contract][HandleChangeStatus] contract status is already set to %s", status.String())
 		return nil, errors.New("contract status is already set to " + status.String())
 	} else if s == "created" && status.String() != "active" {

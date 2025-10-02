@@ -7,11 +7,18 @@ import (
 	"log"
 )
 
-func (h *PatientHandler) HandleGetAll(ctx context.Context, qry queries.GetAllPatientsQuery) (*[]dto.PatientDTO, error) {
+func (h *PatientHandler) HandleGetAll(ctx context.Context, qry queries.GetAllPatientsQuery) ([]*dto.PatientDTO, error) {
 	patients, err := h.repository.GetAll(ctx)
 	if err != nil {
 		log.Printf("[handler:patient][HandleGetAll] error getting all patients: %v", err)
 		return nil, err
 	}
-	return patients, nil
+
+	var patientsDTO []*dto.PatientDTO
+	for _, patient := range patients {
+		patientDTO := dto.MapToPatientDTO(patient)
+		patientsDTO = append(patientsDTO, patientDTO)
+	}
+
+	return patientsDTO, nil
 }

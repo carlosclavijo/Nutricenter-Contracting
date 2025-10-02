@@ -71,7 +71,7 @@ func (admin *Administrator) CreatedAt() time.Time {
 	return admin.createdAt
 }
 
-func NewAdministratorFromDB(id uuid.UUID, firstName, lastName, email, password, gender string, birth *time.Time, phone *string, lastLoginAt, createdAt, updatedAt time.Time, deletedAt *time.Time) *Administrator {
+func NewAdministratorFromDB(id uuid.UUID, firstName string, lastName string, email string, password string, gender string, birth *time.Time, phone *string, lastLoginAt time.Time, createdAt time.Time, updatedAt time.Time, deletedAt *time.Time) *Administrator {
 	emailVo, _ := vo.NewEmail(email)
 	passwordVo, _ := vo.NewPassword(password)
 	genderVo, _ := vo.ParseGender(gender)

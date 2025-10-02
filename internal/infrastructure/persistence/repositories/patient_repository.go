@@ -4,8 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"github.com/carlosclavijo/Nutricenter-Contracting/internal/application/patient/dto"
-	patients "github.com/carlosclavijo/Nutricenter-Contracting/internal/domain/patient"
+	"github.com/carlosclavijo/Nutricenter-Contracting/internal/domain/patient"
 	"github.com/google/uuid"
 	"log"
 	"time"
@@ -15,11 +14,18 @@ type PatientRepository struct {
 	Db *sql.DB
 }
 
-func (r *PatientRepository) GetAll(ctx context.Context) (*[]dto.PatientDTO, error) {
-	var patns []dto.PatientDTO
+func (r *PatientRepository) GetAll(ctx context.Context) ([]*patients.Patient, error) {
+	var (
+		ptns                               []*patients.Patient
+		id                                 uuid.UUID
+		firstName, lastName, email, gender string
+		lastLoginAt, createdAt, updatedAt  time.Time
+		birth, deletedAt                   *time.Time
+		phone                              *string
+	)
 
 	query := `
-		SELECT id, first_name, last_name, email, gender, birth, phone
+		SELECT id, first_name, last_name, email, gender, birth, phone, last_login_at, created_at, updated_at, deleted_at
 		FROM patient
 	`
 	rows, err := r.Db.QueryContext(ctx, query)
@@ -34,30 +40,38 @@ func (r *PatientRepository) GetAll(ctx context.Context) (*[]dto.PatientDTO, erro
 		}
 	}(rows)
 	for rows.Next() {
-		var patient dto.PatientDTO
 		err := rows.Scan(
-			&patient.Id, &patient.FirstName, &patient.LastName, &patient.Email, &patient.Gender, &patient.Birth, &patient.Phone,
+			&id, &firstName, &lastName, &email, &gender, &birth, &phone, &lastLoginAt, &createdAt, &updatedAt, &deletedAt,
 		)
 		if err != nil {
 			log.Printf("[repository:patient][GetAll] error reading patientDTO for a slice of patients: %v", err)
 			return nil, fmt.Errorf("scan failed: %w", err)
 		}
-		patns = append(patns, patient)
+
+		patient := patients.NewPatientFromDB(id, firstName, lastName, email, "restricted", gender, birth, phone, lastLoginAt, createdAt, updatedAt, deletedAt)
+		ptns = append(ptns, patient)
 	}
 
 	if err = rows.Err(); err != nil {
 		log.Printf("[repository:patient][GetAll] error reading patients: %v", err)
 		return nil, fmt.Errorf("rows iteration error: %w", err)
 	}
-	log.Printf("[repository:patient][GetAll] successfully fetched %d patients", len(patns))
-	return &patns, nil
+	log.Printf("[repository:patient][GetAll] successfully fetched %d patients", len(ptns))
+	return ptns, nil
 }
 
-func (r *PatientRepository) GetList(ctx context.Context) (*[]dto.PatientDTO, error) {
-	var patns []dto.PatientDTO
+func (r *PatientRepository) GetList(ctx context.Context) ([]*patients.Patient, error) {
+	var (
+		ptnts                              []*patients.Patient
+		id                                 uuid.UUID
+		firstName, lastName, email, gender string
+		lastLoginAt, createdAt, updatedAt  time.Time
+		birth, deletedAt                   *time.Time
+		phone                              *string
+	)
 
 	query := `
-		SELECT id, first_name, last_name, email, gender, birth, phone
+		SELECT id, first_name, last_name, email, gender, birth, phone, last_login_at, created_at, updated_at, deleted_at
 		FROM patient
 		WHERE deleted_at IS NULL
 	`
@@ -75,16 +89,16 @@ func (r *PatientRepository) GetList(ctx context.Context) (*[]dto.PatientDTO, err
 	}(rows)
 
 	for rows.Next() {
-		var patient dto.PatientDTO
-
 		err := rows.Scan(
-			&patient.Id, &patient.FirstName, &patient.LastName, &patient.Email, &patient.Gender, &patient.Birth, &patient.Phone,
+			id, firstName, lastName, email, gender, birth, phone, lastLoginAt, createdAt, updatedAt, deletedAt,
 		)
 		if err != nil {
 			log.Printf("[repository:patient][GetList] error reading patientDTO for a slice of patients: %v", err)
 			return nil, fmt.Errorf("scan failed: %w", err)
 		}
-		patns = append(patns, patient)
+
+		patient := patients.NewPatientFromDB(id, firstName, lastName, email, "restricted", gender, birth, phone, lastLoginAt, createdAt, updatedAt, deletedAt)
+		ptnts = append(ptnts, patient)
 	}
 
 	if err = rows.Err(); err != nil {
@@ -92,20 +106,25 @@ func (r *PatientRepository) GetList(ctx context.Context) (*[]dto.PatientDTO, err
 		return nil, fmt.Errorf("rows iteration error: %w", err)
 	}
 
-	log.Printf("[repository:patient][GetList] successfully fetched %d patients", len(patns))
-	return &patns, nil
+	log.Printf("[repository:patient][GetList] successfully fetched %d patients", len(ptnts))
+	return ptnts, nil
 }
 
-func (r *PatientRepository) GetById(ctx context.Context, id uuid.UUID) (*dto.PatientDTO, error) {
-	var patient dto.PatientDTO
+func (r *PatientRepository) GetById(ctx context.Context, id uuid.UUID) (*patients.Patient, error) {
+	var (
+		firstName, lastName, email, gender string
+		lastLoginAt, createdAt, updatedAt  time.Time
+		birth, deletedAt                   *time.Time
+		phone                              *string
+	)
 
 	query := `
-		SELECT id, first_name, last_name, email, gender, birth, phone
+		SELECT first_name, last_name, email, gender, birth, phone, last_login_at, created_at, updated_at, deleted_at
 		FROM patient
 		WHERE id = $1
 	`
 	err := r.Db.QueryRowContext(ctx, query, id).Scan(
-		&patient.Id, &patient.FirstName, &patient.LastName, &patient.Email, &patient.Gender, &patient.Birth, &patient.Phone,
+		&firstName, &lastName, &email, &gender, &birth, &phone, &lastLoginAt, &createdAt, &updatedAt, &deletedAt,
 	)
 
 	if err != nil {
@@ -113,34 +132,35 @@ func (r *PatientRepository) GetById(ctx context.Context, id uuid.UUID) (*dto.Pat
 		return nil, fmt.Errorf("query failed: %w", err)
 	}
 
+	ptnt := patients.NewPatientFromDB(id, firstName, lastName, email, "restricted", gender, birth, phone, lastLoginAt, createdAt, updatedAt, deletedAt)
 	log.Printf("[repository:patient][GetById] successfully fetched patient")
-	return &patient, nil
+	return ptnt, nil
 }
 
 func (r *PatientRepository) GetByEmail(ctx context.Context, email string) (*patients.Patient, error) {
 	var (
-		id                                              uuid.UUID
-		firstName, lastName, emailStr, password, gender string
-		lastLoginAt, createdAt, updatedAt               time.Time
-		birth, deletedAt                                *time.Time
-		phone                                           *string
+		id                                    uuid.UUID
+		firstName, lastName, password, gender string
+		lastLoginAt, createdAt, updatedAt     time.Time
+		birth, deletedAt                      *time.Time
+		phone                                 *string
 	)
 
 	query := `
-		SELECT id, first_name, last_name, email, password, gender, birth, phone, last_login_at, created_at, updated_at, deleted_at
+		SELECT id, first_name, last_name, password, gender, birth, phone, last_login_at, created_at, updated_at, deleted_at
 		FROM patient
 		WHERE email = $1
 	`
 
 	err := r.Db.QueryRowContext(ctx, query, email).Scan(
-		&id, &firstName, &lastName, &emailStr, &password, &gender, &birth, &phone, &lastLoginAt, &createdAt, &updatedAt, &deletedAt,
+		&id, &firstName, &lastName, &password, &gender, &birth, &phone, &lastLoginAt, &createdAt, &updatedAt, &deletedAt,
 	)
 	if err != nil {
 		log.Printf("[repository:patient][GetByEmail] error executing SQL query '%s'\nfailed to fetch patient: %v", query, err)
 		return nil, fmt.Errorf("query failed: %w", err)
 	}
 
-	patient := patients.NewPatientFromDB(id, firstName, lastName, emailStr, password, gender, birth, phone, lastLoginAt, createdAt, updatedAt, deletedAt)
+	patient := patients.NewPatientFromDB(id, firstName, lastName, email, password, gender, birth, phone, lastLoginAt, createdAt, updatedAt, deletedAt)
 	log.Printf("[repository:patient][GetByEmail] successfully fetched patient")
 	return patient, nil
 }

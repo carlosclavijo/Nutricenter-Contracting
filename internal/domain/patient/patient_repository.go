@@ -2,14 +2,13 @@ package patients
 
 import (
 	"context"
-	"github.com/carlosclavijo/Nutricenter-Contracting/internal/application/patient/dto"
 	"github.com/google/uuid"
 )
 
 type PatientRepository interface {
-	GetAll(ctx context.Context) (*[]dto.PatientDTO, error)
-	GetList(ctx context.Context) (*[]dto.PatientDTO, error)
-	GetById(ctx context.Context, id uuid.UUID) (*dto.PatientDTO, error)
+	GetAll(ctx context.Context) ([]*Patient, error)
+	GetList(ctx context.Context) ([]*Patient, error)
+	GetById(ctx context.Context, id uuid.UUID) (*Patient, error)
 	GetByEmail(ctx context.Context, email string) (*Patient, error)
 
 	ExistById(ctx context.Context, id uuid.UUID) (bool, error)

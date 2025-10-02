@@ -5,22 +5,31 @@ import "fmt"
 type Gender string
 
 const (
-	Undefined Gender = "U"
-	Male      Gender = "M"
-	Female    Gender = "F"
+	Undefined Gender = "U" // Undefined
+	Male      Gender = "M" // Male
+	Female    Gender = "F" // Female
 )
 
 func (g Gender) String() string {
-	return string(g)
+	switch g {
+	case Undefined:
+		return "undefined"
+	case Male:
+		return "male"
+	case Female:
+		return "female"
+	default:
+		return "unknown"
+	}
 }
 
 func ParseGender(s string) (Gender, error) {
 	switch s {
-	case "undefined":
+	case "undefined", "U":
 		return Undefined, nil
-	case "male":
+	case "male", "M":
 		return Male, nil
-	case "female":
+	case "female", "F":
 		return Female, nil
 	default:
 		return "", fmt.Errorf("invalid gender: %s", s)

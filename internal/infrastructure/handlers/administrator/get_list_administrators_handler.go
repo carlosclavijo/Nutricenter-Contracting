@@ -7,11 +7,18 @@ import (
 	"log"
 )
 
-func (h *AdministratorHandler) HandleGetList(ctx context.Context, qry queries.GetListAdministratorsQuery) (*[]dto.AdministratorDTO, error) {
+func (h *AdministratorHandler) HandleGetList(ctx context.Context, qry queries.GetListAdministratorsQuery) ([]*dto.AdministratorDTO, error) {
 	administrators, err := h.repository.GetList(ctx)
 	if err != nil {
 		log.Printf("[handler:administrator][HandleGetList] error getting administrators list: %v", err)
 		return nil, err
 	}
-	return administrators, nil
+
+	var adminsDTO []*dto.AdministratorDTO
+	for _, admin := range administrators {
+		adminDTO := dto.MapToAdministratorDTO(admin)
+		adminsDTO = append(adminsDTO, adminDTO)
+	}
+
+	return adminsDTO, nil
 }

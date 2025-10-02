@@ -69,7 +69,7 @@ func (c *Contract) Completed() error {
 	if c.contractStatus != Active {
 		return errors.New("contract is not in-progress")
 	}
-	c.contractStatus = Completed
+	c.contractStatus = Finished
 	return nil
 }
 
@@ -125,13 +125,16 @@ func (c *Contract) DeletedAt() *time.Time {
 	return c.deletedAt
 }
 
-func NewContractFromDb(id, aId, pId uuid.UUID, cType ContractType, cStatus ContractStatus, cDate, sDate, eDate time.Time, cost int, d []deliveries.Delivery, cAt, uAt time.Time, dAt *time.Time) *Contract {
+func NewContractFromDb(id, aId, pId uuid.UUID, cType, cStatus string, cDate, sDate, eDate time.Time, cost int, d []deliveries.Delivery, cAt, uAt time.Time, dAt *time.Time) *Contract {
+	contractType, _ := ParseContractType(cType)
+	contractStatus, _ := ParseContractStatus(cStatus)
+
 	return &Contract{
 		AggregateRoot:   abstractions.NewAggregateRoot(id),
 		administratorId: aId,
 		patientId:       pId,
-		contractType:    cType,
-		contractStatus:  cStatus,
+		contractType:    contractType,
+		contractStatus:  contractStatus,
 		creationDate:    cDate,
 		startDate:       sDate,
 		endDate:         eDate,

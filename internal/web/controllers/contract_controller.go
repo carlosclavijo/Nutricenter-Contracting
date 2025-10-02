@@ -78,10 +78,45 @@ func (h *ContractController) GetAllContracts(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	writeJSON(w, http.StatusOK, helpers.Response[[]dto.ContractDTO]{
+	writeJSON(w, http.StatusOK, helpers.Response[[]*dto.ContractDTO]{
 		Success: true,
-		Data:    *contractlist,
-		Length:  len(*contractlist),
+		Data:    contractlist,
+		Length:  len(contractlist),
+	})
+}
+
+func (h *ContractController) GetContractById(w http.ResponseWriter, r *http.Request) {
+	idStr := chi.URLParam(r, "id")
+	id, err := uuid.Parse(idStr)
+	if err != nil {
+		log.Printf("[controller:contract][GetContractById] invalid UUID format '%s': %v", idStr, err)
+		writeJSON(w, http.StatusBadRequest, helpers.Response[any]{
+			Success: false,
+			Error: &helpers.Error{
+				Code:    "INVALID_ID_FORMAT",
+				Message: "The provided ID is not a valid UUID",
+			},
+		})
+		return
+	}
+
+	qry := queries.GetContractByIdQuery{Id: id}
+	cntrct, err := h.qryHandler.HandleGetById(r.Context(), qry)
+	if err != nil {
+		log.Printf("[controller:contract][GetContractById] failed to fetch contract by id '%s': %v", idStr, err)
+		writeJSON(w, http.StatusInternalServerError, helpers.Response[any]{
+			Success: false,
+			Error: &helpers.Error{
+				Code:    "GET_BY_ID_FAILED",
+				Message: "Could not fetch contract by ID",
+			},
+		})
+		return
+	}
+
+	writeJSON(w, http.StatusOK, helpers.Response[dto.ContractDTO]{
+		Success: true,
+		Data:    *cntrct,
 	})
 }
 
@@ -222,6 +257,7 @@ func mapToContractFull(c *contracts.Contract) contractFull {
 
 func (h *ContractController) RegisterRoutes(r chi.Router) {
 	r.Get("/", h.GetAllContracts)
+	r.Get("/{id}", h.GetAllContracts)
 	r.Post("/", h.CreateContract)
 	r.Post("/status", h.ChangeStatusContract)
 }

@@ -62,10 +62,10 @@ func (h *AdministratorController) GetAllAdministrators(w http.ResponseWriter, r 
 		return
 	}
 
-	writeJSON(w, http.StatusOK, helpers.Response[[]dto.AdministratorDTO]{
+	writeJSON(w, http.StatusOK, helpers.Response[[]*dto.AdministratorDTO]{
 		Success: true,
-		Data:    *admins,
-		Length:  len(*admins),
+		Data:    admins,
+		Length:  len(admins),
 	})
 }
 
@@ -85,10 +85,10 @@ func (h *AdministratorController) GetListAdministrators(w http.ResponseWriter, r
 		return
 	}
 
-	writeJSON(w, http.StatusOK, helpers.Response[[]dto.AdministratorDTO]{
+	writeJSON(w, http.StatusOK, helpers.Response[[]*dto.AdministratorDTO]{
 		Success: true,
-		Data:    *admins,
-		Length:  len(*admins),
+		Data:    admins,
+		Length:  len(admins),
 	})
 }
 
@@ -144,10 +144,9 @@ func (h *AdministratorController) GetAdministratorByEmail(w http.ResponseWriter,
 		return
 	}
 
-	admFull := mapToAdminFull(admin)
-	writeJSON(w, http.StatusOK, helpers.Response[adminFull]{
+	writeJSON(w, http.StatusOK, helpers.Response[dto.AdministratorDTO]{
 		Success: true,
-		Data:    admFull,
+		Data:    *admin,
 	})
 }
 

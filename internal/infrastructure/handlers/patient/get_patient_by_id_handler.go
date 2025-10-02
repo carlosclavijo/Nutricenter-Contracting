@@ -13,5 +13,7 @@ func (h *PatientHandler) HandleGetById(ctx context.Context, qry queries.GetPatie
 		log.Printf("[handler:patient][HandleGetById] error getting patient by its id: %v", err)
 		return nil, err
 	}
-	return patients, nil
+
+	patientsDTO := dto.MapToPatientDTO(patients)
+	return patientsDTO, nil
 }

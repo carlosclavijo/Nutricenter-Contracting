@@ -4,10 +4,8 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"github.com/carlosclavijo/Nutricenter-Contracting/internal/application/contract/dto"
 	"github.com/carlosclavijo/Nutricenter-Contracting/internal/domain/contract"
 	"github.com/carlosclavijo/Nutricenter-Contracting/internal/domain/delivery"
-	"github.com/carlosclavijo/Nutricenter-Contracting/internal/domain/valueobjects"
 	"github.com/google/uuid"
 	"log"
 	"strings"
@@ -18,11 +16,19 @@ type ContractRepository struct {
 	DB *sql.DB
 }
 
-func (r *ContractRepository) GetAll(ctx context.Context) (*[]dto.ContractDTO, error) {
-	var cs []dto.ContractDTO
+func (r *ContractRepository) GetAll(ctx context.Context) ([]*contracts.Contract, error) {
+	var (
+		cntrcts                                    []*contracts.Contract
+		id, administratorId, patientId             uuid.UUID
+		contractType, contractStatus               string
+		creation, start, end, createdAt, updatedAt time.Time
+		deletedAt                                  *time.Time
+		cost                                       int
+		deliveryList                               []deliveries.Delivery
+	)
 
 	query := `
-		SELECT id, administrator_id, patient_id, type, status, creation, start, finalized, cost
+		SELECT id, administrator_id, patient_id, type, status, creation, start, finalized, cost, created_at, updated_at, deleted_at
 		FROM contract
 	`
 
@@ -40,13 +46,57 @@ func (r *ContractRepository) GetAll(ctx context.Context) (*[]dto.ContractDTO, er
 
 	}(rows)
 	for rows.Next() {
-		var c dto.ContractDTO
-		err = rows.Scan(&c.Id, &c.AdministratorId, &c.PatientId, &c.ContractType, &c.ContractStatus, &c.CreationDate, &c.StartDate, &c.EndDate, &c.CostValue)
+		err = rows.Scan(
+			&id, &administratorId, &patientId, &contractType, &contractStatus, &creation, &start, &end, &cost, &createdAt, &updatedAt, &deletedAt,
+		)
 		if err != nil {
 			log.Printf("[repository:contract][GetAll] error scanning rows: %v", err)
 			return nil, fmt.Errorf("rows scan failed: %w", err)
 		}
-		cs = append(cs, c)
+
+		var (
+			dId                          uuid.UUID
+			date, dCreatedAt, dUpdatedAt time.Time
+			street, status               string
+			number                       int
+			latitude, longitude          float64
+			dDeletedAt                   *time.Time
+		)
+
+		query := `
+			SELECT id , date, street, number, latitude, longitude, status, created_at, updated_at, deleted_at
+			FROM delivery
+			WHERE contract_id = $1
+		`
+
+		rows, err = r.DB.QueryContext(ctx, query, id)
+		if err != nil {
+			log.Printf("[repository:contract][GetAll] error executing SQL statement for deliveries: %v", err)
+			return nil, fmt.Errorf("query failed: %w", err)
+		}
+
+		defer func(rows *sql.Rows) {
+			if err = rows.Close(); err != nil {
+				log.Printf("[repository:contract][GetAll] error closing delivery rows: %v", err)
+				return
+			}
+		}(rows)
+		for rows.Next() {
+			err = rows.Scan(&dId, &date, &street, &number, &latitude, &longitude, &status, &dCreatedAt, &dUpdatedAt, &dDeletedAt)
+			if err != nil {
+				log.Printf("[repository:contract][GetAll] error scanning delivery rows: %v", err)
+				return nil, fmt.Errorf("rows scan failed: %w", err)
+			}
+
+			d := deliveries.NewDeliveryFromDB(dId, id, date, street, number, latitude, longitude, status)
+			deliveryList = append(deliveryList, *d)
+		}
+
+		c := contracts.NewContractFromDb(
+			id, administratorId, patientId, contractType, contractStatus,
+			creation, start, end, cost, deliveryList, createdAt, updatedAt, deletedAt,
+		)
+		cntrcts = append(cntrcts, c)
 	}
 
 	if err = rows.Err(); err != nil {
@@ -55,33 +105,89 @@ func (r *ContractRepository) GetAll(ctx context.Context) (*[]dto.ContractDTO, er
 	}
 
 	log.Printf("[repository:contract][GetAll] successfully fetched %d")
-	return &cs, nil
+	return cntrcts, nil
 }
 
-func (r *ContractRepository) GetById(ctx context.Context, id uuid.UUID) (*dto.ContractDTO, error) {
-	var c dto.ContractDTO
+func (r *ContractRepository) GetById(ctx context.Context, id uuid.UUID) (*contracts.Contract, error) {
+	var (
+		administratorId, patientId                 uuid.UUID
+		contractType, contractStatus               string
+		creation, start, end, createdAt, updatedAt time.Time
+		deletedAt                                  *time.Time
+		cost                                       int
+		deliveryList                               []deliveries.Delivery
+	)
 
 	query := `
-		SELECT id, administrator_id, patient_id, type, status, creation, start, finalized, cost
+		SELECT administrator_id, patient_id, type, status, creation, start, finalized, cost, created_at, updated_at, deleted_at
 		FROM contract
 		WHERE id = $1
 	`
 
-	err := r.DB.QueryRowContext(ctx, query, id).Scan(&c.Id, &c.AdministratorId, &c.PatientId, &c.ContractType, &c.ContractStatus, &c.CreationDate, &c.StartDate, &c.EndDate, &c.CostValue)
+	err := r.DB.QueryRowContext(ctx, query, id).Scan(
+		&id, &administratorId, &patientId, &contractType, &contractStatus, &creation, &start, &end, &cost, &createdAt, &updatedAt, &deletedAt,
+	)
 	if err != nil {
 		log.Printf("[repository:contract][GetById] error scanning rows: %v", err)
 		return nil, fmt.Errorf("rows scan failed: %w", err)
 	}
 
+	var (
+		dId                          uuid.UUID
+		date, dCreatedAt, dUpdatedAt time.Time
+		street, status               string
+		number                       int
+		latitude, longitude          float64
+		dDeletedAt                   *time.Time
+	)
+
+	query = `
+		SELECT id , date, street, number, latitude, longitude, status, created_at, updated_at, deleted_at
+		FROM delivery
+		WHERE contract_id = $1
+	`
+
+	rows, err := r.DB.QueryContext(ctx, query, id)
+	if err != nil {
+		log.Printf("[repository:contract][GetAll] error executing SQL statement for deliveries: %v", err)
+		return nil, fmt.Errorf("query failed: %w", err)
+	}
+
+	defer func(rows *sql.Rows) {
+		if err = rows.Close(); err != nil {
+			log.Printf("[repository:contract][GetAll] error closing delivery rows: %v", err)
+			return
+		}
+	}(rows)
+	for rows.Next() {
+		err = rows.Scan(&dId, &date, &street, &number, &latitude, &longitude, &status, &dCreatedAt, &dUpdatedAt, &dDeletedAt)
+		if err != nil {
+			log.Printf("[repository:contract][GetAll] error scanning delivery rows: %v", err)
+			return nil, fmt.Errorf("rows scan failed: %w", err)
+		}
+
+		d := deliveries.NewDeliveryFromDB(dId, id, date, street, number, latitude, longitude, status)
+		deliveryList = append(deliveryList, *d)
+	}
+
+	c := contracts.NewContractFromDb(
+		id, administratorId, patientId, contractType, contractStatus,
+		creation, start, end, cost, deliveryList, createdAt, updatedAt, deletedAt,
+	)
+
+	if err = rows.Err(); err != nil {
+		log.Printf("[repository:contract][GetById] error scanning rows: %v", err)
+		return nil, fmt.Errorf("rows scan failed: %w", err)
+	}
+
 	log.Printf("[repository:contract][GetById] successfully fetched")
-	return &c, nil
+	return c, nil
 }
 
 func (r *ContractRepository) Create(ctx context.Context, c *contracts.Contract) (*contracts.Contract, error) {
 	var (
 		id, administratorId, patientId             uuid.UUID
-		contractType                               contracts.ContractType
-		contractStatus                             contracts.ContractStatus
+		contractType, contractStatus               string
 		creation, start, end, createdAt, updatedAt time.Time
 		deletedAt                                  *time.Time
 		cost                                       int
@@ -140,20 +246,20 @@ func (r *ContractRepository) Create(ctx context.Context, c *contracts.Contract) 
 
 	var insertedDeliveries []deliveries.Delivery
 	for rows.Next() {
-		var dId, cId uuid.UUID
-		var date time.Time
-		var street string
-		var number int
-		var latitude, longitude float64
-		var status deliveries.DeliveryStatus
+		var (
+			dId, cId            uuid.UUID
+			date                time.Time
+			street, status      string
+			number              int
+			latitude, longitude float64
+		)
 
 		if err := rows.Scan(&dId, &cId, &date, &street, &number, &latitude, &longitude, &status); err != nil {
 			log.Printf("[repository:contract][Create] scanning rows: %v", err)
 			return nil, fmt.Errorf("scanning delivery failed: %w", err)
 		}
 
-		coordinates, _ := valueobjects.NewCoordinates(latitude, longitude)
-		d := deliveries.NewDeliveryFromDB(dId, cId, date, street, number, *coordinates, status)
+		d := deliveries.NewDeliveryFromDB(dId, cId, date, street, number, latitude, longitude, status)
 		insertedDeliveries = append(insertedDeliveries, *d)
 	}
 
@@ -167,8 +273,7 @@ func (r *ContractRepository) Create(ctx context.Context, c *contracts.Contract) 
 func (r *ContractRepository) ChangeStatus(ctx context.Context, id uuid.UUID, status string) (*contracts.Contract, error) {
 	var (
 		cId, administratorId, patientId            uuid.UUID
-		contractType                               contracts.ContractType
-		contractStatus                             contracts.ContractStatus
+		contractType, contractStatus               string
 		creation, start, end, createdAt, updatedAt time.Time
 		deletedAt                                  *time.Time
 		cost                                       int
@@ -232,6 +337,26 @@ func (r *ContractRepository) Count(ctx context.Context) (int, error) {
 		return 0, err
 	}
 	return count, nil
+}
+
+func (r *ContractRepository) GetAllDeliveries(ctx context.Context) ([]*deliveries.Delivery, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (r *ContractRepository) GetDeliveriesById(ctx context.Context, id uuid.UUID) (*deliveries.Delivery, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (r *ContractRepository) UpdateDelivery(ctx context.Context, id uuid.UUID, delivery *deliveries.Delivery) (*deliveries.Delivery, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (r *ContractRepository) ChangeStatusDelivery(ctx context.Context, id uuid.UUID, status string) (*deliveries.Delivery, error) {
+	//TODO implement me
+	panic("implement me")
 }
 
 func NewContractRepository(db *sql.DB) contracts.ContractRepository {

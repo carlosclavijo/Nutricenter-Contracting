@@ -2,14 +2,13 @@ package administrators
 
 import (
 	"context"
-	"github.com/carlosclavijo/Nutricenter-Contracting/internal/application/administrator/dto"
 	"github.com/google/uuid"
 )
 
 type AdministratorRepository interface {
-	GetAll(ctx context.Context) (*[]dto.AdministratorDTO, error)
-	GetList(ctx context.Context) (*[]dto.AdministratorDTO, error)
-	GetById(ctx context.Context, id uuid.UUID) (*dto.AdministratorDTO, error)
+	GetAll(ctx context.Context) ([]*Administrator, error)
+	GetList(ctx context.Context) ([]*Administrator, error)
+	GetById(ctx context.Context, id uuid.UUID) (*Administrator, error)
 	GetByEmail(ctx context.Context, email string) (*Administrator, error)
 
 	ExistById(ctx context.Context, id uuid.UUID) (bool, error)

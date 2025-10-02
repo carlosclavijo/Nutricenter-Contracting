@@ -133,7 +133,3 @@ func (d DeliveryRepository) Cancel(ctx context.Context, id uuid.UUID) (*deliveri
 	//TODO implement me
 	panic("implement me")
 }
-
-func NewDeliveryRepository(db *sql.DB) deliveries.DeliveryRepository {
-	return &DeliveryRepository{DB: db}
-}

@@ -5,13 +5,22 @@ import "fmt"
 type DeliveryStatus string
 
 const (
-	Pending   DeliveryStatus = "PENDING"
-	Delivered DeliveryStatus = "DELIVERED"
-	Cancelled DeliveryStatus = "CANCELLED"
+	Pending   DeliveryStatus = "P" // Pending
+	Delivered DeliveryStatus = "D" // Delivered
+	Cancelled DeliveryStatus = "C" // Cancelled
 )
 
 func (s DeliveryStatus) String() string {
-	return string(s)
+	switch s {
+	case Pending:
+		return "pending"
+	case Delivered:
+		return "delivered"
+	case Cancelled:
+		return "cancelled"
+	default:
+		return "unknown"
+	}
 }
 
 func ParseDeliveryStatus(s string) (DeliveryStatus, error) {
