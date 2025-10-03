@@ -1,10 +1,12 @@
 package valueobjects
 
 import (
-	"errors"
+	"fmt"
 	"log"
 	"regexp"
 )
+
+const regex = `^[a-zA-Z0-9]([a-zA-Z0-9._%+\-]*[a-zA-Z0-9])?@([a-zA-Z0-9]+(-[a-zA-Z0-9]+)*\.)+[a-zA-Z]{2,}$`
 
 type Email struct {
 	value string
@@ -13,14 +15,14 @@ type Email struct {
 func NewEmail(v string) (Email, error) {
 	if v == "" {
 		log.Printf("[valueobjects][email] empty string")
-		return Email{}, errors.New("email cannot be empty")
+		return Email{}, fmt.Errorf("email cannot be empty")
 	}
 	if !isValidEmail(v) {
-		log.Printf("[valueobjects][email] Email is invalid")
-		return Email{}, errors.New("invalid email")
+		log.Printf("[valueobjects][email] Email '%s' is invalid", v)
+		return Email{}, fmt.Errorf("email '%s' is an invalid email", v)
 	} else if len(v) > 200 {
 		log.Printf("[valueobjects][email] Email is too long")
-		return Email{}, errors.New("email too long: max 200 characters")
+		return Email{}, fmt.Errorf("email '%s' is too long ('%d'), max 200 characters", v, len(v))
 	}
 	return Email{value: v}, nil
 }
@@ -30,6 +32,6 @@ func (e Email) Value() string {
 }
 
 func isValidEmail(email string) bool {
-	var emailRegex = regexp.MustCompile(`^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$`)
+	var emailRegex = regexp.MustCompile(regex)
 	return emailRegex.MatchString(email)
 }

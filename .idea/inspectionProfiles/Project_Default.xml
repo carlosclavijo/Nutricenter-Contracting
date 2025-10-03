@@ -2,6 +2,9 @@
   <profile version="1.0">
     <option name="myName" value="Project Default" />
     <inspection_tool class="GoDfaErrorMayBeNotNil" enabled="true" level="WARNING" enabled_by_default="true">
+      <functions>
+        <function importPath="github.com/carlosclavijo/Nutricenter-Contracting/internal/domain/valueobjects" name="NewEmail" />
+      </functions>
       <methods>
         <method importPath="github.com/carlosclavijo/Nutricenter-Contracting/internal/application/administrator/service" receiver="*AdministratorService" name="Create" />
         <method importPath="database/sql" receiver="*DB" name="ExecContext" />

@@ -14,7 +14,7 @@ type Administrator struct {
 	email       vo.Email
 	password    vo.Password
 	gender      vo.Gender
-	birth       *vo.BirthDate
+	birth       vo.BirthDate
 	phone       *vo.Phone
 	LastLoginAt time.Time
 	createdAt   time.Time
@@ -22,7 +22,7 @@ type Administrator struct {
 	DeletedAt   *time.Time
 }
 
-func NewAdministrator(firstName, lastName string, email vo.Email, password vo.Password, gender vo.Gender, birth *vo.BirthDate, phone *vo.Phone) *Administrator {
+func NewAdministrator(firstName, lastName string, email vo.Email, password vo.Password, gender vo.Gender, birth vo.BirthDate, phone *vo.Phone) *Administrator {
 	return &Administrator{
 		AggregateRoot: abstractions.NewAggregateRoot(uuid.New()),
 		firstName:     firstName,
@@ -59,7 +59,7 @@ func (admin *Administrator) Gender() vo.Gender {
 	return admin.gender
 }
 
-func (admin *Administrator) Birth() *vo.BirthDate {
+func (admin *Administrator) Birth() vo.BirthDate {
 	return admin.birth
 }
 
@@ -71,7 +71,7 @@ func (admin *Administrator) CreatedAt() time.Time {
 	return admin.createdAt
 }
 
-func NewAdministratorFromDB(id uuid.UUID, firstName string, lastName string, email string, password string, gender string, birth *time.Time, phone *string, lastLoginAt time.Time, createdAt time.Time, updatedAt time.Time, deletedAt *time.Time) *Administrator {
+func NewAdministratorFromDB(id uuid.UUID, firstName string, lastName string, email string, password string, gender string, birth time.Time, phone *string, lastLoginAt time.Time, createdAt time.Time, updatedAt time.Time, deletedAt *time.Time) *Administrator {
 	emailVo, _ := vo.NewEmail(email)
 	passwordVo, _ := vo.NewPassword(password)
 	genderVo, _ := vo.ParseGender(gender)

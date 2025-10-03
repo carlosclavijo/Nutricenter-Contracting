@@ -38,7 +38,7 @@ type adminFull struct {
 	Email     string     `json:"email"`
 	Password  string     `json:"password"`
 	Gender    string     `json:"gender"`
-	Birth     *time.Time `json:"birth,omitempty"`
+	Birth     time.Time  `json:"birth,omitempty"`
 	Phone     *string    `json:"phone,omitempty"`
 	LastLogin time.Time  `json:"last_login"`
 	CreatedAt time.Time  `json:"created_at"`
@@ -252,13 +252,13 @@ func (h *AdministratorController) LoginAdministrator(w http.ResponseWriter, r *h
 
 func (h *AdministratorController) CreateAdministrator(w http.ResponseWriter, r *http.Request) {
 	var req struct {
-		FirstName string     `json:"first_name"`
-		LastName  string     `json:"last_name"`
-		Email     string     `json:"email"`
-		Password  string     `json:"password"`
-		Gender    string     `json:"gender"`
-		Birth     *time.Time `json:"birth"`
-		Phone     *string    `json:"phone"`
+		FirstName string    `json:"first_name"`
+		LastName  string    `json:"last_name"`
+		Email     string    `json:"email"`
+		Password  string    `json:"password"`
+		Gender    string    `json:"gender"`
+		Birth     time.Time `json:"birth"`
+		Phone     *string   `json:"phone"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -305,14 +305,14 @@ func (h *AdministratorController) CreateAdministrator(w http.ResponseWriter, r *
 
 func (h *AdministratorController) UpdateAdministrator(w http.ResponseWriter, r *http.Request) {
 	var req struct {
-		Id        string     `json:"id"`
-		FirstName string     `json:"first_name,omitempty"`
-		LastName  string     `json:"last_name,omitempty"`
-		Email     string     `json:"email,omitempty"`
-		Password  string     `json:"password,omitempty"`
-		Gender    string     `json:"gender,omitempty"`
-		Birth     *time.Time `json:"birth,omitempty"`
-		Phone     *string    `json:"phone,omitempty"`
+		Id        string    `json:"id"`
+		FirstName string    `json:"first_name,omitempty"`
+		LastName  string    `json:"last_name,omitempty"`
+		Email     string    `json:"email,omitempty"`
+		Password  string    `json:"password,omitempty"`
+		Gender    string    `json:"gender,omitempty"`
+		Birth     time.Time `json:"birth,omitempty"`
+		Phone     *string   `json:"phone,omitempty"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -514,12 +514,6 @@ func writeJSON(w http.ResponseWriter, status int, payload any) {
 }
 
 func mapToAdminFull(admin *administrators.Administrator) adminFull {
-	var birthTm *time.Time
-	if admin.Birth() != nil {
-		b := admin.Birth().Value()
-		birthTm = b
-	}
-
 	var phoneStr *string
 	if admin.Phone() != nil {
 		p := admin.Phone().String()
@@ -533,7 +527,7 @@ func mapToAdminFull(admin *administrators.Administrator) adminFull {
 		Email:     admin.Email().Value(),
 		Password:  "",
 		Gender:    admin.Gender().String(),
-		Birth:     birthTm,
+		Birth:     admin.Birth().Value(),
 		Phone:     phoneStr,
 		LastLogin: admin.LastLoginAt,
 		CreatedAt: admin.CreatedAt(),

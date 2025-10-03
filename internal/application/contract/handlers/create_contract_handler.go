@@ -21,7 +21,7 @@ func (h *ContractHandler) HandleCreate(ctx context.Context, cmd commands.CreateC
 		return nil, err
 	}
 
-	contractFactory, err := h.factory.Create(cmd.AdministratorId, cmd.PatientId, cType, cmd.StartDate, cmd.Cost, cmd.Street, cmd.Number, *coordinates)
+	contractFactory, err := h.factory.Create(cmd.AdministratorId, cmd.PatientId, cType, cmd.StartDate, cmd.Cost, cmd.Street, cmd.Number, coordinates)
 	if err != nil {
 		log.Printf("[handler:contract][HandleCreate] error creating contract factory: %v", err)
 		return nil, err

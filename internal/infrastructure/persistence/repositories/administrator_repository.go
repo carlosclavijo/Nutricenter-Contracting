@@ -16,12 +16,12 @@ type AdministratorRepository struct {
 
 func (r *AdministratorRepository) GetAll(ctx context.Context) ([]*administrators.Administrator, error) {
 	var (
-		admins                             []*administrators.Administrator
-		id                                 uuid.UUID
-		firstName, lastName, email, gender string
-		lastLoginAt, createdAt, updatedAt  time.Time
-		birth, deletedAt                   *time.Time
-		phone                              *string
+		admins                                   []*administrators.Administrator
+		id                                       uuid.UUID
+		firstName, lastName, email, gender       string
+		lastLoginAt, createdAt, updatedAt, birth time.Time
+		deletedAt                                *time.Time
+		phone                                    *string
 	)
 
 	query := `
@@ -62,12 +62,12 @@ func (r *AdministratorRepository) GetAll(ctx context.Context) ([]*administrators
 
 func (r *AdministratorRepository) GetList(ctx context.Context) ([]*administrators.Administrator, error) {
 	var (
-		admins                             []*administrators.Administrator
-		id                                 uuid.UUID
-		firstName, lastName, email, gender string
-		lastLoginAt, createdAt, updatedAt  time.Time
-		birth, deletedAt                   *time.Time
-		phone                              *string
+		admins                                   []*administrators.Administrator
+		id                                       uuid.UUID
+		firstName, lastName, email, gender       string
+		lastLoginAt, createdAt, updatedAt, birth time.Time
+		deletedAt                                *time.Time
+		phone                                    *string
 	)
 
 	query := `
@@ -112,10 +112,10 @@ func (r *AdministratorRepository) GetList(ctx context.Context) ([]*administrator
 
 func (r *AdministratorRepository) GetById(ctx context.Context, id uuid.UUID) (*administrators.Administrator, error) {
 	var (
-		firstName, lastName, email, gender string
-		lastLoginAt, createdAt, updatedAt  time.Time
-		birth, deletedAt                   *time.Time
-		phone                              *string
+		firstName, lastName, email, gender       string
+		lastLoginAt, createdAt, updatedAt, birth time.Time
+		deletedAt                                *time.Time
+		phone                                    *string
 	)
 
 	query := `
@@ -139,11 +139,11 @@ func (r *AdministratorRepository) GetById(ctx context.Context, id uuid.UUID) (*a
 
 func (r *AdministratorRepository) GetByEmail(ctx context.Context, email string) (*administrators.Administrator, error) {
 	var (
-		id                                    uuid.UUID
-		firstName, lastName, password, gender string
-		lastLoginAt, createdAt, updatedAt     time.Time
-		birth, deletedAt                      *time.Time
-		phone                                 *string
+		id                                       uuid.UUID
+		firstName, lastName, password, gender    string
+		lastLoginAt, createdAt, updatedAt, birth time.Time
+		deletedAt                                *time.Time
+		phone                                    *string
 	)
 
 	query := `
@@ -211,16 +211,13 @@ func (r *AdministratorRepository) ExistByEmail(ctx context.Context, email string
 
 func (r *AdministratorRepository) Create(ctx context.Context, adm *administrators.Administrator) (*administrators.Administrator, error) {
 	var (
-		id                                 uuid.UUID
-		firstName, lastName, email, gender string
-		lastLoginAt, createdAt, updatedAt  time.Time
-		birth, birthVal, deletedAt         *time.Time
-		phone, phoneVal                    *string
+		id                                       uuid.UUID
+		firstName, lastName, email, gender       string
+		lastLoginAt, createdAt, updatedAt, birth time.Time
+		deletedAt                                *time.Time
+		phone, phoneVal                          *string
 	)
 
-	if adm.Birth() != nil {
-		birthVal = adm.Birth().Value()
-	}
 	if adm.Phone() != nil {
 		s := adm.Phone().String()
 		phoneVal = s
@@ -232,7 +229,8 @@ func (r *AdministratorRepository) Create(ctx context.Context, adm *administrator
 		RETURNING id, first_name, last_name, email, gender, birth, phone, last_login_at, created_at, updated_at, deleted_at
 	`
 	err := r.Db.QueryRowContext(
-		ctx, query, adm.Id(), adm.FirstName(), adm.LastName(), adm.Email().Value(), adm.Password().String(), adm.Gender(), birthVal, phoneVal).Scan(
+		ctx, query, adm.Id(), adm.FirstName(), adm.LastName(), adm.Email().Value(), adm.Password().String(), adm.Gender(), adm.Birth(), phoneVal,
+	).Scan(
 		&id, &firstName, &lastName, &email, &gender, &birth, &phone, &lastLoginAt, &createdAt, &updatedAt, &deletedAt,
 	)
 
@@ -248,16 +246,12 @@ func (r *AdministratorRepository) Create(ctx context.Context, adm *administrator
 
 func (r *AdministratorRepository) Update(ctx context.Context, adm *administrators.Administrator) (*administrators.Administrator, error) {
 	var (
-		id                                 uuid.UUID
-		firstName, lastName, email, gender string
-		phone                              *string
-		lastLoginAt, createdAt, updatedAt  time.Time
-		birth, deletedAt                   *time.Time
+		id                                       uuid.UUID
+		firstName, lastName, email, gender       string
+		phone                                    *string
+		lastLoginAt, createdAt, updatedAt, birth time.Time
+		deletedAt                                *time.Time
 	)
-
-	if adm.Birth() != nil {
-		birth = adm.Birth().Value()
-	}
 
 	if adm.Phone() != nil {
 		phone = adm.Phone().String()
@@ -290,10 +284,10 @@ func (r *AdministratorRepository) Update(ctx context.Context, adm *administrator
 
 func (r *AdministratorRepository) Delete(ctx context.Context, id uuid.UUID) (*administrators.Administrator, error) {
 	var (
-		firstName, lastName, email, gender string
-		lastLoginAt, createdAt, updatedAt  time.Time
-		birth, deletedAt                   *time.Time
-		phone                              *string
+		firstName, lastName, email, gender       string
+		lastLoginAt, createdAt, updatedAt, birth time.Time
+		deletedAt                                *time.Time
+		phone                                    *string
 	)
 
 	query := `
@@ -318,11 +312,11 @@ func (r *AdministratorRepository) Delete(ctx context.Context, id uuid.UUID) (*ad
 
 func (r *AdministratorRepository) Restore(ctx context.Context, id uuid.UUID) (*administrators.Administrator, error) {
 	var (
-		idNew                              uuid.UUID
-		firstName, lastName, email, gender string
-		lastLoginAt, createdAt, updatedAt  time.Time
-		birth, deletedAt                   *time.Time
-		phone                              *string
+		idNew                                    uuid.UUID
+		firstName, lastName, email, gender       string
+		lastLoginAt, createdAt, updatedAt, birth time.Time
+		deletedAt                                *time.Time
+		phone                                    *string
 	)
 
 	query := `

@@ -12,6 +12,6 @@ type UpdateAdministratorCommand struct {
 	Email     string
 	Password  string
 	Gender    string
-	Birth     *time.Time
+	Birth     time.Time
 	Phone     *string
 }

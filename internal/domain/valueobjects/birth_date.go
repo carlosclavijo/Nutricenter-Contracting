@@ -1,32 +1,27 @@
 package valueobjects
 
 import (
-	"errors"
+	"fmt"
 	"log"
 	"time"
 )
 
 type BirthDate struct {
-	value *time.Time
+	value time.Time
 }
 
-func NewBirthDate(v *time.Time) (*BirthDate, error) {
-	if v == nil {
-		return nil, nil
-	} else if v.After(time.Now()) {
-		log.Printf("[valueobject:birth_date] birthdate cannot be in the future")
-		return nil, errors.New("birthdate cannot be in the future")
-	} else if !isAnAdult(*v) {
+func NewBirthDate(v time.Time) (BirthDate, error) {
+	if v.After(time.Now()) {
+		log.Printf("[valueobject:birth_date] birthdate '%v' cannot be in the future", v)
+		return BirthDate{}, fmt.Errorf("birthdate '%v' cannot be in the future", v.Format("2006-01-02"))
+	} else if !isAnAdult(v) {
 		log.Printf("[valueobject:birth_date] cannot be an underage")
-		return &BirthDate{}, errors.New("isn't an adult")
+		return BirthDate{}, fmt.Errorf("date '%v' is an age of an underage person", v.Format("2006-01-02"))
 	}
-	return &BirthDate{value: v}, nil
+	return BirthDate{value: v}, nil
 }
 
-func (b BirthDate) Value() *time.Time {
-	if b.value == nil {
-		return nil
-	}
+func (b BirthDate) Value() time.Time {
 	return b.value
 }
 

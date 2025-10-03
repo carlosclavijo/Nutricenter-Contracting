@@ -45,7 +45,7 @@ func (a patientFactory) Create(firstName, lastName string, email vo.Email, passw
 	}
 
 	log.Printf("[factory:patient][SUCCESS] patient created")
-	return NewPatient(firstName, lastName, email, password, gender, &birth, &phone), nil
+	return NewPatient(firstName, lastName, email, password, gender, birth, &phone), nil
 }
 
 func NewPatientFactory() PatientFactory {

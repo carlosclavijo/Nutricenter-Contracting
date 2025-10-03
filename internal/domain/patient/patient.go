@@ -14,7 +14,7 @@ type Patient struct {
 	email       vo.Email
 	password    vo.Password
 	gender      vo.Gender
-	birth       *vo.BirthDate
+	birth       vo.BirthDate
 	phone       *vo.Phone
 	LastLoginAt time.Time
 	createdAt   time.Time
@@ -22,7 +22,7 @@ type Patient struct {
 	DeletedAt   *time.Time
 }
 
-func NewPatient(firstName, lastName string, email vo.Email, password vo.Password, gender vo.Gender, birth *vo.BirthDate, phone *vo.Phone) *Patient {
+func NewPatient(firstName, lastName string, email vo.Email, password vo.Password, gender vo.Gender, birth vo.BirthDate, phone *vo.Phone) *Patient {
 	return &Patient{
 		AggregateRoot: abstractions.NewAggregateRoot(uuid.New()),
 		firstName:     firstName,
@@ -59,7 +59,7 @@ func (admin *Patient) Gender() vo.Gender {
 	return admin.gender
 }
 
-func (admin *Patient) Birth() *vo.BirthDate {
+func (admin *Patient) Birth() vo.BirthDate {
 	return admin.birth
 }
 
@@ -71,7 +71,7 @@ func (admin *Patient) CreatedAt() time.Time {
 	return admin.createdAt
 }
 
-func NewPatientFromDB(id uuid.UUID, firstName, lastName, email, password, gender string, birth *time.Time, phone *string, lastLoginAt, createdAt, updatedAt time.Time, deletedAt *time.Time) *Patient {
+func NewPatientFromDB(id uuid.UUID, firstName, lastName, email, password, gender string, birth time.Time, phone *string, lastLoginAt, createdAt, updatedAt time.Time, deletedAt *time.Time) *Patient {
 	emailVo, _ := vo.NewEmail(email)
 	passwordVo, _ := vo.NewPassword(password)
 	genderVo, _ := vo.ParseGender(gender)

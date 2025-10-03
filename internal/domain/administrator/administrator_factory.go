@@ -45,7 +45,7 @@ func (a administratorFactory) Create(firstName, lastName string, email vo.Email,
 	}
 
 	log.Printf("[factory:administrator][SUCCESS] administrator created")
-	return NewAdministrator(firstName, lastName, email, password, gender, &birth, &phone), nil
+	return NewAdministrator(firstName, lastName, email, password, gender, birth, &phone), nil
 }
 
 func NewAdministratorFactory() AdministratorFactory {

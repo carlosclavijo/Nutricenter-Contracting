@@ -16,12 +16,12 @@ type PatientRepository struct {
 
 func (r *PatientRepository) GetAll(ctx context.Context) ([]*patients.Patient, error) {
 	var (
-		ptns                               []*patients.Patient
-		id                                 uuid.UUID
-		firstName, lastName, email, gender string
-		lastLoginAt, createdAt, updatedAt  time.Time
-		birth, deletedAt                   *time.Time
-		phone                              *string
+		ptns                                     []*patients.Patient
+		id                                       uuid.UUID
+		firstName, lastName, email, gender       string
+		lastLoginAt, createdAt, updatedAt, birth time.Time
+		deletedAt                                *time.Time
+		phone                                    *string
 	)
 
 	query := `
@@ -62,12 +62,12 @@ func (r *PatientRepository) GetAll(ctx context.Context) ([]*patients.Patient, er
 
 func (r *PatientRepository) GetList(ctx context.Context) ([]*patients.Patient, error) {
 	var (
-		ptnts                              []*patients.Patient
-		id                                 uuid.UUID
-		firstName, lastName, email, gender string
-		lastLoginAt, createdAt, updatedAt  time.Time
-		birth, deletedAt                   *time.Time
-		phone                              *string
+		ptnts                                    []*patients.Patient
+		id                                       uuid.UUID
+		firstName, lastName, email, gender       string
+		lastLoginAt, createdAt, updatedAt, birth time.Time
+		deletedAt                                *time.Time
+		phone                                    *string
 	)
 
 	query := `
@@ -112,10 +112,10 @@ func (r *PatientRepository) GetList(ctx context.Context) ([]*patients.Patient, e
 
 func (r *PatientRepository) GetById(ctx context.Context, id uuid.UUID) (*patients.Patient, error) {
 	var (
-		firstName, lastName, email, gender string
-		lastLoginAt, createdAt, updatedAt  time.Time
-		birth, deletedAt                   *time.Time
-		phone                              *string
+		firstName, lastName, email, gender       string
+		lastLoginAt, createdAt, updatedAt, birth time.Time
+		deletedAt                                *time.Time
+		phone                                    *string
 	)
 
 	query := `
@@ -139,11 +139,11 @@ func (r *PatientRepository) GetById(ctx context.Context, id uuid.UUID) (*patient
 
 func (r *PatientRepository) GetByEmail(ctx context.Context, email string) (*patients.Patient, error) {
 	var (
-		id                                    uuid.UUID
-		firstName, lastName, password, gender string
-		lastLoginAt, createdAt, updatedAt     time.Time
-		birth, deletedAt                      *time.Time
-		phone                                 *string
+		id                                       uuid.UUID
+		firstName, lastName, password, gender    string
+		lastLoginAt, createdAt, updatedAt, birth time.Time
+		deletedAt                                *time.Time
+		phone                                    *string
 	)
 
 	query := `
@@ -211,16 +211,13 @@ func (r *PatientRepository) ExistByEmail(ctx context.Context, email string) (boo
 
 func (r *PatientRepository) Create(ctx context.Context, adm *patients.Patient) (*patients.Patient, error) {
 	var (
-		id                                 uuid.UUID
-		firstName, lastName, email, gender string
-		lastLoginAt, createdAt, updatedAt  time.Time
-		birth, birthVal, deletedAt         *time.Time
-		phone, phoneVal                    *string
+		id                                       uuid.UUID
+		firstName, lastName, email, gender       string
+		lastLoginAt, createdAt, updatedAt, birth time.Time
+		deletedAt                                *time.Time
+		phone, phoneVal                          *string
 	)
 
-	if adm.Birth() != nil {
-		birthVal = adm.Birth().Value()
-	}
 	if adm.Phone() != nil {
 		s := adm.Phone().String()
 		phoneVal = s
@@ -232,7 +229,8 @@ func (r *PatientRepository) Create(ctx context.Context, adm *patients.Patient) (
 		RETURNING id, first_name, last_name, email, gender, birth, phone, last_login_at, created_at, updated_at, deleted_at
 	`
 	err := r.Db.QueryRowContext(
-		ctx, query, adm.Id(), adm.FirstName(), adm.LastName(), adm.Email().Value(), adm.Password().String(), adm.Gender(), birthVal, phoneVal).Scan(
+		ctx, query, adm.Id(), adm.FirstName(), adm.LastName(), adm.Email().Value(), adm.Password().String(), adm.Gender(), adm.Birth(), phoneVal,
+	).Scan(
 		&id, &firstName, &lastName, &email, &gender, &birth, &phone, &lastLoginAt, &createdAt, &updatedAt, &deletedAt,
 	)
 
@@ -248,16 +246,12 @@ func (r *PatientRepository) Create(ctx context.Context, adm *patients.Patient) (
 
 func (r *PatientRepository) Update(ctx context.Context, adm *patients.Patient) (*patients.Patient, error) {
 	var (
-		id                                 uuid.UUID
-		firstName, lastName, email, gender string
-		phone                              *string
-		lastLoginAt, createdAt, updatedAt  time.Time
-		birth, deletedAt                   *time.Time
+		id                                       uuid.UUID
+		firstName, lastName, email, gender       string
+		phone                                    *string
+		lastLoginAt, createdAt, updatedAt, birth time.Time
+		deletedAt                                *time.Time
 	)
-
-	if adm.Birth() != nil {
-		birth = adm.Birth().Value()
-	}
 
 	if adm.Phone() != nil {
 		phone = adm.Phone().String()
@@ -271,18 +265,7 @@ func (r *PatientRepository) Update(ctx context.Context, adm *patients.Patient) (
     `
 
 	err := r.Db.QueryRowContext(
-		ctx,
-		query,
-		adm.FirstName(),
-		adm.LastName(),
-		adm.Email().Value(),
-		adm.Password().String(),
-		adm.Gender(),
-		birth,
-		phone,
-		adm.LastLoginAt,
-		adm.UpdatedAt,
-		adm.Id(),
+		ctx, query, adm.FirstName(), adm.LastName(), adm.Email().Value(), adm.Password().String(), adm.Gender(), birth, phone, adm.LastLoginAt, adm.UpdatedAt, adm.Id(),
 	).Scan(
 		&id, &firstName, &lastName, &email, &gender, &birth, &phone, &lastLoginAt, &createdAt, &updatedAt, &deletedAt,
 	)
@@ -301,11 +284,11 @@ func (r *PatientRepository) Update(ctx context.Context, adm *patients.Patient) (
 
 func (r *PatientRepository) Delete(ctx context.Context, id uuid.UUID) (*patients.Patient, error) {
 	var (
-		idNew                              uuid.UUID
-		firstName, lastName, email, gender string
-		lastLoginAt, createdAt, updatedAt  time.Time
-		birth, deletedAt                   *time.Time
-		phone                              *string
+		idNew                                    uuid.UUID
+		firstName, lastName, email, gender       string
+		lastLoginAt, createdAt, updatedAt, birth time.Time
+		deletedAt                                *time.Time
+		phone                                    *string
 	)
 
 	query := `
@@ -330,11 +313,11 @@ func (r *PatientRepository) Delete(ctx context.Context, id uuid.UUID) (*patients
 
 func (r *PatientRepository) Restore(ctx context.Context, id uuid.UUID) (*patients.Patient, error) {
 	var (
-		idNew                              uuid.UUID
-		firstName, lastName, email, gender string
-		lastLoginAt, createdAt, updatedAt  time.Time
-		birth, deletedAt                   *time.Time
-		phone                              *string
+		idNew                                    uuid.UUID
+		firstName, lastName, email, gender       string
+		lastLoginAt, createdAt, updatedAt, birth time.Time
+		deletedAt                                *time.Time
+		phone                                    *string
 	)
 
 	query := `
