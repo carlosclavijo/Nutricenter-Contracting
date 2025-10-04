@@ -32,6 +32,6 @@ func ParseGender(s string) (Gender, error) {
 	case "female", "F":
 		return Female, nil
 	default:
-		return "", fmt.Errorf("invalid gender 'unknown'")
+		return "", fmt.Errorf("input '%s' is not a gender", s)
 	}
 }

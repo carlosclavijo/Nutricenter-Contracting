@@ -46,7 +46,7 @@ func (h *PatientHandler) HandleCreate(ctx context.Context, cmd commands.CreatePa
 		return nil, err
 	}
 
-	adminFactory, err := h.factory.Create(cmd.FirstName, cmd.LastName, email, password, gender, birth, *phone)
+	adminFactory, err := h.factory.Create(cmd.FirstName, cmd.LastName, email, password, gender, birth, phone)
 	if err != nil {
 		log.Printf("[handler:patient][HandleCreate] error Creating AdministratorFactory: %v", err)
 		return nil, err

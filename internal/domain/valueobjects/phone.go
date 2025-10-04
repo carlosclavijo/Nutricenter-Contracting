@@ -12,7 +12,7 @@ type Phone struct {
 
 func NewPhone(v *string) (*Phone, error) {
 	if v == nil || *v == "" {
-		return nil, fmt.Errorf("phone cannot be nil or empty")
+		return nil, nil
 	} else if !isNumeric(*v) {
 		log.Printf("[valueobject:phone] phone value isn't entirely numeric")
 		return nil, fmt.Errorf("phone number '%s' isn't entirely numeric", *v)

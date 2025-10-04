@@ -46,7 +46,7 @@ func (h *AdministratorHandler) HandleCreate(ctx context.Context, cmd commands.Cr
 		return nil, err
 	}
 
-	adminFactory, err := h.factory.Create(cmd.FirstName, cmd.LastName, email, password, gender, birth, *phone)
+	adminFactory, err := h.factory.Create(cmd.FirstName, cmd.LastName, email, password, gender, birth, phone)
 	if err != nil {
 		log.Printf("[handler:administrator][HandleCreate] error Creating AdministratorFactory: %v", err)
 		return nil, err

@@ -40,7 +40,7 @@ func (r *ContractRepository) GetAll(ctx context.Context) ([]*contracts.Contract,
 
 	defer func(rows *sql.Rows) {
 		if err = rows.Close(); err != nil {
-			log.Printf("[repository:contract][GetAll] error closing rows: %v]")
+			log.Printf("[repository:contract][GetAll] error closing rows: %v]", err)
 			return
 		}
 
@@ -88,7 +88,7 @@ func (r *ContractRepository) GetAll(ctx context.Context) ([]*contracts.Contract,
 				return nil, fmt.Errorf("rows scan failed: %w", err)
 			}
 
-			d := deliveries.NewDeliveryFromDB(dId, id, date, street, number, latitude, longitude, status)
+			d := deliveries.NewDeliveryFromDB(dId, id, date, street, number, latitude, longitude, status, createdAt, updatedAt, deletedAt)
 			deliveryList = append(deliveryList, *d)
 		}
 
@@ -104,7 +104,7 @@ func (r *ContractRepository) GetAll(ctx context.Context) ([]*contracts.Contract,
 		return nil, fmt.Errorf("rows scan failed: %w", err)
 	}
 
-	log.Printf("[repository:contract][GetAll] successfully fetched %d")
+	log.Printf("[repository:contract][GetAll] successfully fetched %d contracts", len(cntrcts))
 	return cntrcts, nil
 }
 
@@ -166,7 +166,7 @@ func (r *ContractRepository) GetById(ctx context.Context, id uuid.UUID) (*contra
 			return nil, fmt.Errorf("rows scan failed: %w", err)
 		}
 
-		d := deliveries.NewDeliveryFromDB(dId, id, date, street, number, latitude, longitude, status)
+		d := deliveries.NewDeliveryFromDB(dId, id, date, street, number, latitude, longitude, status, createdAt, updatedAt, deletedAt)
 		deliveryList = append(deliveryList, *d)
 	}
 
@@ -259,7 +259,7 @@ func (r *ContractRepository) Create(ctx context.Context, c *contracts.Contract) 
 			return nil, fmt.Errorf("scanning delivery failed: %w", err)
 		}
 
-		d := deliveries.NewDeliveryFromDB(dId, cId, date, street, number, latitude, longitude, status)
+		d := deliveries.NewDeliveryFromDB(dId, cId, date, street, number, latitude, longitude, status, createdAt, updatedAt, deletedAt)
 		insertedDeliveries = append(insertedDeliveries, *d)
 	}
 

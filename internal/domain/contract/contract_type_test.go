@@ -1,0 +1,45 @@
+package contracts
+
+import (
+	"fmt"
+	"github.com/stretchr/testify/assert"
+	"testing"
+)
+
+func TestContractType(t *testing.T) {
+	monthly := Monthly
+	halfMonth := HalfMonth
+	other, err := ParseContractType("X")
+
+	assert.Equal(t, monthly.String(), "monthly")
+	assert.Equal(t, halfMonth.String(), "half-month")
+	assert.Equal(t, other.String(), "unknown")
+
+	assert.Equal(t, Monthly, monthly)
+	assert.Equal(t, HalfMonth, halfMonth)
+	assert.NotEqual(t, ContractType(""), other.String())
+
+	expected := fmt.Sprintf("input '%s' is not a contract type", "X")
+	assert.NotNil(t, err)
+	assert.ErrorContains(t, err, expected)
+
+	ct, err := ParseContractType("monthly")
+	assert.NoError(t, err)
+	assert.Equal(t, Monthly, ct)
+
+	ct, err = ParseContractType("M")
+	assert.NoError(t, err)
+	assert.Equal(t, Monthly, ct)
+
+	ct, err = ParseContractType("half-month")
+	assert.NoError(t, err)
+	assert.Equal(t, HalfMonth, ct)
+
+	ct, err = ParseContractType("H")
+	assert.NoError(t, err)
+	assert.Equal(t, HalfMonth, ct)
+
+	ct, err = ParseContractType("invalid")
+	assert.Error(t, err)
+	assert.Equal(t, ContractType(""), ct)
+}

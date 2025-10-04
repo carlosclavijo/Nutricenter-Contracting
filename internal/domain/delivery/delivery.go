@@ -32,7 +32,7 @@ func NewDelivery(contractId uuid.UUID, date time.Time, street string, number int
 	}
 }
 
-func NewDeliveryFromDB(id, contractId uuid.UUID, date time.Time, street string, number int, latitude, longitude float64, status string) *Delivery {
+func NewDeliveryFromDB(id, contractId uuid.UUID, date time.Time, street string, number int, latitude, longitude float64, status string, createdAt time.Time, updatedAt time.Time, deletedAt *time.Time) *Delivery {
 	coordinates, _ := valueobjects.NewCoordinates(latitude, longitude)
 	newStatus, _ := ParseDeliveryStatus(status)
 
@@ -44,6 +44,9 @@ func NewDeliveryFromDB(id, contractId uuid.UUID, date time.Time, street string, 
 		number:      number,
 		coordinates: coordinates,
 		status:      newStatus,
+		createdAt:   createdAt,
+		updatedAt:   updatedAt,
+		deletedAt:   deletedAt,
 	}
 }
 
@@ -87,11 +90,9 @@ func (d *Delivery) DeletedAt() *time.Time {
 	return d.deletedAt
 }
 
-func (d *Delivery) Update(street string, number int) {
+func (d *Delivery) Update(street string, number int, coordinates valueobjects.Coordinates) {
 	d.street = street
 	d.number = number
-}
-
-func (d *Delivery) Delete() {
-
+	d.coordinates = coordinates
+	d.updatedAt = time.Now()
 }

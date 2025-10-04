@@ -42,14 +42,14 @@ func TestNewPhone_Nil(t *testing.T) {
 	phoneStr := ""
 	phone2, err2 := NewPhone(&phoneStr)
 
-	assert.Nil(t, phone)
-	assert.Nil(t, phone2)
+	assert.Empty(t, phone)
+	assert.Empty(t, phone2)
 
-	assert.NotNil(t, err)
-	assert.NotNil(t, err2)
+	assert.Nil(t, err)
+	assert.Nil(t, err2)
 
-	assert.ErrorContains(t, err, "phone cannot be nil or empty")
-	assert.ErrorContains(t, err2, "phone cannot be nil or empty")
+	assert.NoError(t, err)
+	assert.NoError(t, err2)
 }
 
 func TestNewPhone_Invalid_IsNotNumeric(t *testing.T) {
