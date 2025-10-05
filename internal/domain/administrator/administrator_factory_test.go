@@ -39,11 +39,36 @@ func TestAdministratorFactory_Valid(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			fName := isAlpha(tc.firstName)
 			lName := isAlpha(tc.lastName)
-			email, _ := valueobjects.NewEmail(tc.email)
-			password, _ := valueobjects.NewPassword(tc.password)
-			gender, _ := valueobjects.ParseGender(tc.gender)
-			birth, _ := valueobjects.NewBirthDate(tc.birth)
-			phone, _ := valueobjects.NewPhone(tc.phone)
+
+			email, err := valueobjects.NewEmail(tc.email)
+			assert.NotEmpty(t, email)
+			assert.Equal(t, email.Value(), tc.email)
+			assert.Nil(t, err)
+
+			password, err := valueobjects.NewPassword(tc.password)
+			assert.NotEmpty(t, password)
+			assert.Equal(t, password.String(), tc.password)
+			assert.Nil(t, err)
+
+			gender, err := valueobjects.ParseGender(tc.gender)
+			assert.Contains(t, []string{"undefined", "male", "female"}, gender.String())
+			assert.NotEqual(t, gender, "")
+			assert.NotEqual(t, gender, "unknown")
+			assert.NoError(t, err)
+
+			birth, err := valueobjects.NewBirthDate(tc.birth)
+			assert.NotEmpty(t, birth)
+			assert.Equal(t, birth.Value(), tc.birth)
+			assert.Nil(t, err)
+
+			phone, err := valueobjects.NewPhone(tc.phone)
+			if phone == nil {
+				assert.Nil(t, err)
+			} else {
+				assert.NotEmpty(t, phone)
+				assert.Equal(t, phone.String(), tc.phone)
+				assert.Nil(t, err)
+			}
 
 			admin, err := factory.Create(tc.firstName, tc.lastName, email, password, gender, birth, phone)
 
@@ -59,9 +84,8 @@ func TestAdministratorFactory_Valid(t *testing.T) {
 			assert.Equal(t, tc.email, admin.Email().Value())
 			assert.Equal(t, tc.password, admin.Password().String())
 			assert.Equal(t, gender.String(), admin.Gender().String())
+			assert.Contains(t, []string{"undefined", "male", "female"}, admin.Gender().String())
 			assert.Equal(t, tc.birth.Format("2006-01-02"), admin.Birth().Value().Format("2006-01-02"))
-			assert.NotNil(t, admin.Id())
-			assert.NotNil(t, admin.CreatedAt())
 
 			if tc.phone != nil {
 				assert.NotNil(t, admin.Phone())
@@ -69,6 +93,15 @@ func TestAdministratorFactory_Valid(t *testing.T) {
 			} else {
 				assert.Nil(t, admin.Phone())
 			}
+
+			assert.NotNil(t, admin.Id())
+			assert.NotNil(t, admin.LastLoginAt)
+			assert.Empty(t, admin.LastLoginAt)
+			assert.NotNil(t, admin.CreatedAt())
+			assert.Empty(t, admin.CreatedAt())
+			assert.NotNil(t, admin.UpdatedAt)
+			assert.Empty(t, admin.UpdatedAt)
+			assert.Nil(t, admin.DeletedAt)
 		})
 	}
 }

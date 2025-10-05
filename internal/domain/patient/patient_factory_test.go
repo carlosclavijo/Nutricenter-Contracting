@@ -39,11 +39,36 @@ func TestPatientFactory_Valid(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			fName := isAlpha(tc.firstName)
 			lName := isAlpha(tc.lastName)
-			email, _ := valueobjects.NewEmail(tc.email)
-			password, _ := valueobjects.NewPassword(tc.password)
-			gender, _ := valueobjects.ParseGender(tc.gender)
-			birth, _ := valueobjects.NewBirthDate(tc.birth)
-			phone, _ := valueobjects.NewPhone(tc.phone)
+
+			email, err := valueobjects.NewEmail(tc.email)
+			assert.NotEmpty(t, email)
+			assert.Equal(t, email.Value(), tc.email)
+			assert.Nil(t, err)
+
+			password, er := valueobjects.NewPassword(tc.password)
+			assert.NotEmpty(t, password)
+			assert.Equal(t, password.String(), tc.password)
+			assert.Nil(t, er)
+
+			gender, err := valueobjects.ParseGender(tc.gender)
+			assert.Contains(t, []string{"undefined", "male", "female"}, gender.String())
+			assert.NotEqual(t, gender, "")
+			assert.NotEqual(t, gender, "unknown")
+			assert.NoError(t, err)
+
+			birth, err := valueobjects.NewBirthDate(tc.birth)
+			assert.NotEmpty(t, birth)
+			assert.Equal(t, birth.Value(), tc.birth)
+			assert.Nil(t, err)
+
+			phone, err := valueobjects.NewPhone(tc.phone)
+			if phone == nil {
+				assert.Nil(t, err)
+			} else {
+				assert.NotEmpty(t, phone)
+				assert.Equal(t, phone.String(), tc.phone)
+				assert.Nil(t, err)
+			}
 
 			patient, err := factory.Create(tc.firstName, tc.lastName, email, password, gender, birth, phone)
 
@@ -59,9 +84,8 @@ func TestPatientFactory_Valid(t *testing.T) {
 			assert.Equal(t, tc.email, patient.Email().Value())
 			assert.Equal(t, tc.password, patient.Password().String())
 			assert.Equal(t, gender.String(), patient.Gender().String())
+			assert.Contains(t, []string{"undefined", "male", "female"}, patient.Gender().String())
 			assert.Equal(t, tc.birth.Format("2006-01-02"), patient.Birth().Value().Format("2006-01-02"))
-			assert.NotNil(t, patient.Id())
-			assert.NotNil(t, patient.CreatedAt())
 
 			if tc.phone != nil {
 				assert.NotNil(t, patient.Phone())
@@ -69,6 +93,15 @@ func TestPatientFactory_Valid(t *testing.T) {
 			} else {
 				assert.Nil(t, patient.Phone())
 			}
+
+			assert.NotNil(t, patient.Id())
+			assert.NotNil(t, patient.LastLoginAt)
+			assert.Empty(t, patient.LastLoginAt)
+			assert.NotNil(t, patient.CreatedAt())
+			assert.Empty(t, patient.CreatedAt())
+			assert.NotNil(t, patient.UpdatedAt)
+			assert.NotNil(t, patient.UpdatedAt)
+			assert.Nil(t, patient.DeletedAt)
 		})
 	}
 }

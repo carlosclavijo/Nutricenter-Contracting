@@ -1,7 +1,7 @@
 package contracts
 
 import (
-	"errors"
+	"fmt"
 	"github.com/carlosclavijo/Nutricenter-Contracting/internal/domain/valueobjects"
 	"github.com/google/uuid"
 	"log"
@@ -17,37 +17,37 @@ type contractFactory struct{}
 func (c contractFactory) Create(administratorId, patientId uuid.UUID, contractType ContractType, start time.Time, cost int, street string, number int, coordinates valueobjects.Coordinates) (*Contract, error) {
 	if administratorId == uuid.Nil {
 		log.Printf("[factory:contract] administratorId '%s' is not a valid UUID", administratorId)
-		return nil, errors.New("administratorId is not a valid UUID")
+		return nil, fmt.Errorf("administratorId is not a valid UUID")
 	}
 
 	if patientId == uuid.Nil {
 		log.Printf("[factory:contract] patientId '%s' is not a valid UUID", patientId)
-		return nil, errors.New("patientId is not a valid UUID")
+		return nil, fmt.Errorf("patientId is not a valid UUID")
 	}
 
 	if contractType != HalfMonth && contractType != Monthly {
 		log.Printf("[factory:contract] contractType '%s' is invalid", contractType)
-		return nil, errors.New("contractType is invalid")
+		return nil, fmt.Errorf("contractType '%s' is invalid", contractType)
 	}
 
 	if !isAtLeastTwoDaysFromToday(start) {
 		log.Printf("[factory:contract] startDate '%s' is before it could be", contractType)
-		return nil, errors.New("startDate is not before two days after tomorrow")
+		return nil, fmt.Errorf("startDate '%v' is not before two days after tomorrow", start)
 	}
 
-	if cost <= 0 {
+	if cost < 0 {
 		log.Printf("[factory:contract] cost '%v' suppose to be a positive number", contractType)
-		return nil, errors.New("cost '%d' suppose to be a positive number")
+		return nil, fmt.Errorf("cost '%d' suppose to be a positive number", cost)
 	}
 
 	if street == "" {
 		log.Printf("[factory:contract] street '%s' is empty", street)
-		return nil, errors.New("street is empty")
+		return nil, fmt.Errorf("street name is empty")
 	}
 
 	if number <= 0 {
 		log.Printf("[factory:contract] number '%d' needs to be a positive number", number)
-		return nil, errors.New("number needs to be a positive number")
+		return nil, fmt.Errorf("number '%d' needs to be a positive number", number)
 	}
 
 	log.Printf("[factory:contract] contractType '%s' is valid", contractType)

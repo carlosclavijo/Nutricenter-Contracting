@@ -39,7 +39,7 @@ func TestNewDelivery(t *testing.T) {
 	assert.Equal(t, date, delivery.Date())
 	assert.Equal(t, street, delivery.Street())
 	assert.Equal(t, number, delivery.Number())
-	w
+
 	dCoordinates := delivery.Coordinates()
 	assert.Equal(t, lat, dCoordinates.Latitude())
 	assert.Equal(t, lon, dCoordinates.Longitude())

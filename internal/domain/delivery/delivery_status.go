@@ -25,13 +25,13 @@ func (s DeliveryStatus) String() string {
 
 func ParseDeliveryStatus(s string) (DeliveryStatus, error) {
 	switch s {
-	case "pending":
+	case "pending", "P":
 		return Pending, nil
-	case "delivered":
+	case "delivered", "D":
 		return Delivered, nil
-	case "cancelled":
+	case "cancelled", "C":
 		return Cancelled, nil
 	default:
-		return "", fmt.Errorf("invalid delivery-status: %s", s)
+		return "", fmt.Errorf("input '%s' is not a delivery status", s)
 	}
 }

@@ -1,9 +1,11 @@
 package contracts
 
 import (
-	"errors"
+	"fmt"
 	"github.com/carlosclavijo/Nutricenter-Contracting/internal/domain/abstractions"
+	administrators "github.com/carlosclavijo/Nutricenter-Contracting/internal/domain/administrator"
 	"github.com/carlosclavijo/Nutricenter-Contracting/internal/domain/delivery"
+	patients "github.com/carlosclavijo/Nutricenter-Contracting/internal/domain/patient"
 	"github.com/carlosclavijo/Nutricenter-Contracting/internal/domain/valueobjects"
 	"github.com/google/uuid"
 	"time"
@@ -23,10 +25,18 @@ type Contract struct {
 	createdAt       time.Time
 	updatedAt       time.Time
 	deletedAt       *time.Time
+	administrator   *administrators.Administrator
+	patient         *patients.Patient
 }
 
 func NewContract(administratorId uuid.UUID, patientId uuid.UUID, contractType ContractType, start time.Time, costValue int, street string, number int, coordinates valueobjects.Coordinates) *Contract {
 	id := uuid.New()
+	var endDate time.Time
+	if contractType == HalfMonth {
+		endDate = start.AddDate(0, 0, 14)
+	} else if contractType == Monthly {
+		endDate = start.AddDate(0, 0, 29)
+	}
 	return &Contract{
 		AggregateRoot:   abstractions.NewAggregateRoot(id),
 		administratorId: administratorId,
@@ -35,7 +45,7 @@ func NewContract(administratorId uuid.UUID, patientId uuid.UUID, contractType Co
 		contractStatus:  Created,
 		creationDate:    time.Now(),
 		startDate:       start,
-		endDate:         start.AddDate(0, 0, 15),
+		endDate:         endDate,
 		costValue:       costValue,
 		deliveries:      createCalendar(contractType, id, start, street, number, coordinates),
 	}
@@ -57,9 +67,9 @@ func createCalendar(typ ContractType, contractId uuid.UUID, date time.Time, stre
 	return days
 }
 
-func (c *Contract) InProgress() error {
+func (c *Contract) Active() error {
 	if c.contractStatus != Created {
-		return errors.New("contract is not created")
+		return fmt.Errorf("only Created contracts can convert to Active")
 	}
 	c.contractStatus = Active
 	return nil
@@ -67,7 +77,7 @@ func (c *Contract) InProgress() error {
 
 func (c *Contract) Completed() error {
 	if c.contractStatus != Active {
-		return errors.New("contract is not in-progress")
+		return fmt.Errorf("only Active contracts can convert to Finished")
 	}
 	c.contractStatus = Finished
 	return nil
@@ -123,6 +133,14 @@ func (c *Contract) UpdatedAt() time.Time {
 
 func (c *Contract) DeletedAt() *time.Time {
 	return c.deletedAt
+}
+
+func (c *Contract) Administrator() *administrators.Administrator {
+	return c.administrator
+}
+
+func (c *Contract) Patient() *patients.Patient {
+	return c.patient
 }
 
 func NewContractFromDb(id, aId, pId uuid.UUID, cType, cStatus string, cDate, sDate, eDate time.Time, cost int, d []deliveries.Delivery, cAt, uAt time.Time, dAt *time.Time) *Contract {

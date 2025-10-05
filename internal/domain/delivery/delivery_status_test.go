@@ -1,48 +1,57 @@
 package deliveries
 
 import (
+	"fmt"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
-func TestDeliveryStatus_String(t *testing.T) {
-	p := Pending
-	d := Delivered
-	c := Cancelled
-	unknown := DeliveryStatus("")
-
-	assert.Equal(t, p.String(), "pending")
-	assert.Equal(t, d.String(), "delivered")
-	assert.Equal(t, c.String(), "cancelled")
-	assert.Equal(t, unknown.String(), "unknown")
-}
-
 func TestDeliveryStatus(t *testing.T) {
-	cases := []struct {
-		name, input string
-		expected    DeliveryStatus
-		wantErr     bool
-	}{
-		{"Pending", "pending", Pending, false},
-		{"Delivered", "delivered", Delivered, false},
-		{"Cancelled", "cancelled", Cancelled, false},
-		{"Invalid", "unknown", "", true},
-	}
+	pending := Pending
+	delivered := Delivered
+	cancelled := Cancelled
+	unknown, err := ParseDeliveryStatus("X")
 
-	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
-			got, err := ParseDeliveryStatus(tc.input)
+	assert.Equal(t, pending.String(), "pending")
+	assert.Equal(t, delivered.String(), "delivered")
+	assert.Equal(t, cancelled.String(), "cancelled")
+	assert.Equal(t, unknown.String(), "unknown")
 
-			if tc.wantErr {
-				assert.NotNil(t, err)
-				expected := "invalid delivery-status: " + tc.input
-				assert.ErrorContains(t, err, expected)
-				assert.Equal(t, DeliveryStatus(""), got)
-			} else {
-				assert.Nil(t, err)
-				assert.NotEqual(t, DeliveryStatus(""), got)
-				assert.Exactly(t, tc.expected, got)
-			}
-		})
-	}
+	assert.Equal(t, Pending, pending)
+	assert.Equal(t, Delivered, delivered)
+	assert.Equal(t, Cancelled, cancelled)
+	assert.NotEqual(t, DeliveryStatus(""), unknown.String())
+
+	expected := fmt.Sprintf("input '%s' is not a delivery status", "X")
+	assert.NotNil(t, err)
+	assert.ErrorContains(t, err, expected)
+
+	ds, err := ParseDeliveryStatus("pending")
+	assert.NoError(t, err)
+	assert.Equal(t, Pending, ds)
+
+	ds, err = ParseDeliveryStatus("P")
+	assert.NoError(t, err)
+	assert.Equal(t, Pending, ds)
+
+	ds, err = ParseDeliveryStatus("delivered")
+	assert.NoError(t, err)
+	assert.Equal(t, Delivered, ds)
+
+	ds, err = ParseDeliveryStatus("D")
+	assert.NoError(t, err)
+	assert.Equal(t, Delivered, ds)
+
+	ds, err = ParseDeliveryStatus("cancelled")
+	assert.NoError(t, err)
+	assert.Equal(t, Cancelled, ds)
+
+	ds, err = ParseDeliveryStatus("C")
+	assert.NoError(t, err)
+	assert.Equal(t, Cancelled, ds)
+
+	ds, err = ParseDeliveryStatus("invalid")
+	assert.Error(t, err)
+	assert.Equal(t, DeliveryStatus(""), ds)
+
 }
