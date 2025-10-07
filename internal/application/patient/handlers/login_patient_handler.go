@@ -4,14 +4,14 @@ import (
 	"context"
 	"errors"
 	"github.com/carlosclavijo/Nutricenter-Contracting/internal/application/patient/commands"
-	"github.com/carlosclavijo/Nutricenter-Contracting/internal/domain/patient"
+	"github.com/carlosclavijo/Nutricenter-Contracting/internal/application/patient/dto"
+	"github.com/carlosclavijo/Nutricenter-Contracting/internal/application/patient/mappers"
 	"github.com/carlosclavijo/Nutricenter-Contracting/internal/domain/valueobjects"
 	"golang.org/x/crypto/bcrypt"
 	"log"
-	"time"
 )
 
-func (h *PatientHandler) HandleLogin(ctx context.Context, cmd commands.LoginPatientCommand) (*patients.Patient, error) {
+func (h *PatientHandler) HandleLogin(ctx context.Context, cmd commands.LoginPatientCommand) (*dto.PatientResponse, error) {
 	exist, err := h.repository.ExistByEmail(ctx, cmd.Email)
 	if err != nil {
 		log.Printf("[handler:patient][HandleLogin] error verifying if patient exists: %v", err)
@@ -43,12 +43,15 @@ func (h *PatientHandler) HandleLogin(ctx context.Context, cmd commands.LoginPati
 		return nil, errors.New("invalid credentials")
 	}
 
-	patient.LastLoginAt = time.Now()
+	patient.Logged()
 	patient, err = h.repository.Update(ctx, patient)
 	if err != nil {
 		log.Printf("[handler:patient][HandleLogin] error Updating LastLoginAt of Patient: %v", err)
 		return nil, err
 	}
 
-	return patient, nil
+	patientDto := mappers.MapToPatientDTO(patient)
+	patientResponse := mappers.MapToPatientResponse(patientDto, patient.LastLoginAt(), patient.CreatedAt(), patient.UpdatedAt(), patient.DeletedAt())
+
+	return patientResponse, nil
 }

@@ -3,25 +3,21 @@ package handlers
 import (
 	"context"
 	"github.com/carlosclavijo/Nutricenter-Contracting/internal/application/administrator/commands"
-	"github.com/carlosclavijo/Nutricenter-Contracting/internal/domain/administrator"
+	"github.com/carlosclavijo/Nutricenter-Contracting/internal/application/administrator/dto"
+	"github.com/carlosclavijo/Nutricenter-Contracting/internal/application/administrator/mappers"
 	"github.com/carlosclavijo/Nutricenter-Contracting/internal/domain/valueobjects"
 	"golang.org/x/crypto/bcrypt"
 	"log"
 )
 
-func (h *AdministratorHandler) HandleCreate(ctx context.Context, cmd commands.CreateAdministratorCommand) (*administrators.Administrator, error) {
+func (h *AdministratorHandler) HandleCreate(ctx context.Context, cmd commands.CreateAdministratorCommand) (*dto.AdministratorResponse, error) {
 	email, err := valueobjects.NewEmail(cmd.Email)
 	if err != nil {
 		log.Printf("[handler:administrator][HandleCreate] Error creating email '%s' object: %v", cmd.Email, err)
 		return nil, err
 	}
 
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(cmd.Password), bcrypt.DefaultCost)
-	if err != nil {
-		log.Printf("[handler:administrator][HandleCreate] Error generating password: %v", err)
-		return nil, err
-	}
-
+	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(cmd.Password), bcrypt.DefaultCost)
 	password, err := valueobjects.NewPassword(string(hashedPassword))
 	if err != nil {
 		log.Printf("[handler:administrator][HandleCreate] Error creating password object: %v", err)
@@ -53,11 +49,13 @@ func (h *AdministratorHandler) HandleCreate(ctx context.Context, cmd commands.Cr
 	}
 
 	admin, err := h.repository.Create(ctx, adminFactory)
-
 	if err != nil {
 		log.Printf("[handler:administrator][HandleCreate] error Creating AdministratorRepository: %v", err)
 		return nil, err
 	}
 
-	return admin, nil
+	adminDto := mappers.MapToAdministratorDTO(admin)
+	adminResponse := mappers.MapToAdministratorResponse(adminDto, admin.LastLoginAt(), admin.CreatedAt(), admin.UpdatedAt(), admin.DeletedAt())
+
+	return adminResponse, nil
 }

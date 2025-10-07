@@ -19,10 +19,10 @@ func NewCoordinates(latitude, longitude float64) (Coordinates, error) {
 	return Coordinates{lat: latitude, lon: longitude}, nil
 }
 
-func (c *Coordinates) Latitude() float64 {
+func (c Coordinates) Latitude() float64 {
 	return c.lat
 }
 
-func (c *Coordinates) Longitude() float64 {
+func (c Coordinates) Longitude() float64 {
 	return c.lon
 }

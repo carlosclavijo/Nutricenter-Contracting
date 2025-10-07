@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"github.com/carlosclavijo/Nutricenter-Contracting/internal/application/administrator/commands"
+	"github.com/carlosclavijo/Nutricenter-Contracting/internal/application/administrator/dto"
+	"github.com/carlosclavijo/Nutricenter-Contracting/internal/application/administrator/mappers"
 	"github.com/carlosclavijo/Nutricenter-Contracting/internal/domain/abstractions"
 	"github.com/carlosclavijo/Nutricenter-Contracting/internal/domain/administrator"
 	"github.com/carlosclavijo/Nutricenter-Contracting/internal/domain/valueobjects"
@@ -11,7 +13,7 @@ import (
 	"log"
 )
 
-func (h *AdministratorHandler) HandleUpdate(ctx context.Context, cmd commands.UpdateAdministratorCommand) (*administrators.Administrator, error) {
+func (h *AdministratorHandler) HandleUpdate(ctx context.Context, cmd commands.UpdateAdministratorCommand) (*dto.AdministratorResponse, error) {
 	exist, err := h.repository.ExistById(ctx, cmd.Id)
 	if err != nil {
 		log.Printf("[handler:administrator][HandleUpdate] error verifying if Administrator exists: %v", err)
@@ -65,5 +67,8 @@ func (h *AdministratorHandler) HandleUpdate(ctx context.Context, cmd commands.Up
 		return nil, err
 	}
 
-	return admin, nil
+	adminDto := mappers.MapToAdministratorDTO(admin)
+	adminResponse := mappers.MapToAdministratorResponse(adminDto, admin.LastLoginAt(), admin.CreatedAt(), admin.UpdatedAt(), admin.DeletedAt())
+
+	return adminResponse, nil
 }

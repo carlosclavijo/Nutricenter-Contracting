@@ -26,8 +26,9 @@ func TestNewCoordinates(t *testing.T) {
 			coords, err := NewCoordinates(tc.lat, tc.lon)
 
 			assert.NotNil(t, coords)
-			assert.Equal(t, coords.Latitude(), tc.lat)
-			assert.Equal(t, coords.Longitude(), tc.lon)
+
+			assert.Equal(t, tc.lat, coords.Latitude())
+			assert.Equal(t, tc.lon, coords.Longitude())
 
 			assert.Nil(t, err)
 			assert.NoError(t, err)
@@ -49,12 +50,12 @@ func TestNewCoordinates_InValid_Latitude(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			coords, err := NewCoordinates(tc.lat, tc.lon)
 
-			assert.Empty(t, coords)
-
 			assert.NotNil(t, err)
 
 			expected := fmt.Sprintf("latitude '%.2f' must been between -90 and 90", tc.lat)
 			assert.ErrorContains(t, err, expected)
+
+			assert.Empty(t, coords)
 		})
 	}
 }
@@ -73,12 +74,12 @@ func TestNewCoordinates_InValid_Longitude(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			coords, err := NewCoordinates(tc.lat, tc.lon)
 
-			assert.Empty(t, coords)
-
 			assert.NotNil(t, err)
 
 			expected := fmt.Sprintf("longitude '%.2f' must been between -180 and 180", tc.lon)
 			assert.ErrorContains(t, err, expected)
+
+			assert.Empty(t, coords)
 		})
 	}
 }

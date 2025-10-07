@@ -3,13 +3,14 @@ package handlers
 import (
 	"context"
 	"github.com/carlosclavijo/Nutricenter-Contracting/internal/application/patient/commands"
-	"github.com/carlosclavijo/Nutricenter-Contracting/internal/domain/patient"
+	"github.com/carlosclavijo/Nutricenter-Contracting/internal/application/patient/dto"
+	"github.com/carlosclavijo/Nutricenter-Contracting/internal/application/patient/mappers"
 	"github.com/carlosclavijo/Nutricenter-Contracting/internal/domain/valueobjects"
 	"golang.org/x/crypto/bcrypt"
 	"log"
 )
 
-func (h *PatientHandler) HandleCreate(ctx context.Context, cmd commands.CreatePatientCommand) (*patients.Patient, error) {
+func (h *PatientHandler) HandleCreate(ctx context.Context, cmd commands.CreatePatientCommand) (*dto.PatientResponse, error) {
 	email, err := valueobjects.NewEmail(cmd.Email)
 	if err != nil {
 		log.Printf("[handler:patient][HandleCreate] Error creating email '%s' object: %v", cmd.Email, err)
@@ -46,18 +47,20 @@ func (h *PatientHandler) HandleCreate(ctx context.Context, cmd commands.CreatePa
 		return nil, err
 	}
 
-	adminFactory, err := h.factory.Create(cmd.FirstName, cmd.LastName, email, password, gender, birth, phone)
+	patientFactory, err := h.factory.Create(cmd.FirstName, cmd.LastName, email, password, gender, birth, phone)
 	if err != nil {
 		log.Printf("[handler:patient][HandleCreate] error Creating AdministratorFactory: %v", err)
 		return nil, err
 	}
 
-	admin, err := h.repository.Create(ctx, adminFactory)
-
+	patient, err := h.repository.Create(ctx, patientFactory)
 	if err != nil {
 		log.Printf("[handler:patient][HandleCreate] error Creating AdministratorRepository: %v", err)
 		return nil, err
 	}
 
-	return admin, nil
+	patientDto := mappers.MapToPatientDTO(patient)
+	patientResponse := mappers.MapToPatientResponse(patientDto, patient.LastLoginAt(), patient.CreatedAt(), patient.UpdatedAt(), patient.DeletedAt())
+
+	return patientResponse, nil
 }

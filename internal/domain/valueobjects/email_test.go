@@ -10,9 +10,7 @@ func TestNewEmail_Empty(t *testing.T) {
 	email, err := NewEmail("")
 
 	assert.Empty(t, email)
-
 	assert.Equal(t, email.Value(), "")
-
 	assert.ErrorContains(t, err, "email cannot be empty")
 }
 
@@ -38,10 +36,11 @@ func TestNewEmail(t *testing.T) {
 			isValid := isValidEmail(tc.email)
 
 			assert.NotEmpty(t, email)
-			assert.Equal(t, email.Value(), tc.email)
-			assert.NoError(t, err)
 
+			assert.Equal(t, email.Value(), tc.email)
 			assert.True(t, isValid)
+
+			assert.NoError(t, err)
 		})
 	}
 }
@@ -67,13 +66,13 @@ func TestNewEmail_Invalid(t *testing.T) {
 			email, err := NewEmail(tc.email)
 			isValid := isValidEmail(tc.email)
 
-			assert.Empty(t, email)
 			assert.NotNil(t, err)
+			assert.False(t, isValid)
 
 			expected := fmt.Sprintf("email '%s' is an invalid email", tc.email)
 			assert.ErrorContains(t, err, expected)
 
-			assert.False(t, isValid)
+			assert.Empty(t, email)
 		})
 	}
 }

@@ -14,7 +14,7 @@ type AdministratorFactory interface {
 
 type administratorFactory struct{}
 
-func (a administratorFactory) Create(firstName, lastName string, email vo.Email, password vo.Password, gender vo.Gender, birth vo.BirthDate, phone *vo.Phone) (*Administrator, error) {
+func (administratorFactory) Create(firstName, lastName string, email vo.Email, password vo.Password, gender vo.Gender, birth vo.BirthDate, phone *vo.Phone) (*Administrator, error) {
 	if firstName == "" {
 		log.Printf("[factory:administrator] firstName '%s' is empty", firstName)
 		return nil, fmt.Errorf("firstName is empty")

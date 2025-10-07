@@ -4,14 +4,14 @@ import (
 	"context"
 	"errors"
 	"github.com/carlosclavijo/Nutricenter-Contracting/internal/application/administrator/commands"
-	"github.com/carlosclavijo/Nutricenter-Contracting/internal/domain/administrator"
+	"github.com/carlosclavijo/Nutricenter-Contracting/internal/application/administrator/dto"
+	"github.com/carlosclavijo/Nutricenter-Contracting/internal/application/administrator/mappers"
 	"github.com/carlosclavijo/Nutricenter-Contracting/internal/domain/valueobjects"
 	"golang.org/x/crypto/bcrypt"
 	"log"
-	"time"
 )
 
-func (h *AdministratorHandler) HandleLogin(ctx context.Context, cmd commands.LoginAdministratorCommand) (*administrators.Administrator, error) {
+func (h *AdministratorHandler) HandleLogin(ctx context.Context, cmd commands.LoginAdministratorCommand) (*dto.AdministratorResponse, error) {
 	exist, err := h.repository.ExistByEmail(ctx, cmd.Email)
 	if err != nil {
 		log.Printf("[handler:administrator][HandleLogin] error verifying if Administrator exists: %v", err)
@@ -43,12 +43,15 @@ func (h *AdministratorHandler) HandleLogin(ctx context.Context, cmd commands.Log
 		return nil, errors.New("invalid credentials")
 	}
 
-	admin.LastLoginAt = time.Now()
+	admin.Logged()
 	admin, err = h.repository.Update(ctx, admin)
 	if err != nil {
 		log.Printf("[handler:administrator][HandleLogin] error Updating LastLoginAt of Administrator: %v", err)
 		return nil, err
 	}
 
-	return admin, nil
+	adminDto := mappers.MapToAdministratorDTO(admin)
+	adminResponse := mappers.MapToAdministratorResponse(adminDto, admin.LastLoginAt(), admin.CreatedAt(), admin.UpdatedAt(), admin.DeletedAt())
+
+	return adminResponse, nil
 }

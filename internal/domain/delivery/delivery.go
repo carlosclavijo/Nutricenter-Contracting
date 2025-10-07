@@ -1,6 +1,7 @@
 package deliveries
 
 import (
+	"fmt"
 	"github.com/carlosclavijo/Nutricenter-Contracting/internal/domain/abstractions"
 	"github.com/carlosclavijo/Nutricenter-Contracting/internal/domain/valueobjects"
 	"github.com/google/uuid"
@@ -18,36 +19,6 @@ type Delivery struct {
 	createdAt   time.Time
 	updatedAt   time.Time
 	deletedAt   *time.Time
-}
-
-func NewDelivery(contractId uuid.UUID, date time.Time, street string, number int, coordinates valueobjects.Coordinates) *Delivery {
-	return &Delivery{
-		Entity:      abstractions.NewEntity(uuid.New()),
-		contractId:  contractId,
-		date:        date,
-		street:      street,
-		number:      number,
-		coordinates: coordinates,
-		status:      Pending,
-	}
-}
-
-func NewDeliveryFromDB(id, contractId uuid.UUID, date time.Time, street string, number int, latitude, longitude float64, status string, createdAt time.Time, updatedAt time.Time, deletedAt *time.Time) *Delivery {
-	coordinates, _ := valueobjects.NewCoordinates(latitude, longitude)
-	newStatus, _ := ParseDeliveryStatus(status)
-
-	return &Delivery{
-		Entity:      abstractions.NewEntity(id),
-		contractId:  contractId,
-		date:        date,
-		street:      street,
-		number:      number,
-		coordinates: coordinates,
-		status:      newStatus,
-		createdAt:   createdAt,
-		updatedAt:   updatedAt,
-		deletedAt:   deletedAt,
-	}
 }
 
 func (d *Delivery) Id() uuid.UUID {
@@ -90,9 +61,53 @@ func (d *Delivery) DeletedAt() *time.Time {
 	return d.deletedAt
 }
 
-func (d *Delivery) Update(street string, number int, coordinates valueobjects.Coordinates) {
+func (d *Delivery) Update(street string, number int, coordinates valueobjects.Coordinates) error {
+	if d.Status() != Pending {
+		return fmt.Errorf("delivered is not pending so you can't update it")
+	}
 	d.street = street
 	d.number = number
 	d.coordinates = coordinates
 	d.updatedAt = time.Now()
+	return nil
+
+}
+
+func (d *Delivery) ChangeStatus(status DeliveryStatus) error {
+	if status != Delivered && status != Cancelled && d.status != Pending {
+		return fmt.Errorf("cannot change to that '%s' status", status)
+	}
+
+	d.status = status
+	return nil
+}
+
+func NewDelivery(contractId uuid.UUID, date time.Time, street string, number int, coordinates valueobjects.Coordinates) *Delivery {
+	return &Delivery{
+		Entity:      abstractions.NewEntity(uuid.New()),
+		contractId:  contractId,
+		date:        date,
+		street:      street,
+		number:      number,
+		coordinates: coordinates,
+		status:      Pending,
+	}
+}
+
+func NewDeliveryFromDB(id, contractId uuid.UUID, date time.Time, street string, number int, latitude, longitude float64, status string, createdAt time.Time, updatedAt time.Time, deletedAt *time.Time) *Delivery {
+	coordinates, _ := valueobjects.NewCoordinates(latitude, longitude)
+	newStatus, _ := ParseDeliveryStatus(status)
+
+	return &Delivery{
+		Entity:      abstractions.NewEntity(id),
+		contractId:  contractId,
+		date:        date,
+		street:      street,
+		number:      number,
+		coordinates: coordinates,
+		status:      newStatus,
+		createdAt:   createdAt,
+		updatedAt:   updatedAt,
+		deletedAt:   deletedAt,
+	}
 }

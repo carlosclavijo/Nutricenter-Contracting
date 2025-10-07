@@ -12,10 +12,9 @@ func TestNewDomainEvent(t *testing.T) {
 	event := NewDomainEvent()
 
 	assert.NotNil(t, event)
+	assert.NotNil(t, event.Id())
+	assert.NotNil(t, event.OccurredOn())
 	assert.NotEmpty(t, event)
 
-	assert.NotNil(t, event.Id())
-	
-	assert.NotNil(t, event.OccurredOn())
 	assert.WithinDuration(t, now, event.OccurredOn(), time.Second)
 }

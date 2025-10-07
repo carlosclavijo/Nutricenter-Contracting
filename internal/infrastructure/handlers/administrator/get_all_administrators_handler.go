@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"github.com/carlosclavijo/Nutricenter-Contracting/internal/application/administrator/dto"
+	"github.com/carlosclavijo/Nutricenter-Contracting/internal/application/administrator/mappers"
 	"github.com/carlosclavijo/Nutricenter-Contracting/internal/application/administrator/queries"
 	"log"
 )
@@ -16,7 +17,7 @@ func (h *AdministratorHandler) HandleGetAll(ctx context.Context, qry queries.Get
 
 	var adminsDTO []*dto.AdministratorDTO
 	for _, admin := range administrators {
-		adminDTO := dto.MapToAdministratorDTO(admin)
+		adminDTO := mappers.MapToAdministratorDTO(admin)
 		adminsDTO = append(adminsDTO, adminDTO)
 	}
 

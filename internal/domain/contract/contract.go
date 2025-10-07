@@ -3,9 +3,7 @@ package contracts
 import (
 	"fmt"
 	"github.com/carlosclavijo/Nutricenter-Contracting/internal/domain/abstractions"
-	administrators "github.com/carlosclavijo/Nutricenter-Contracting/internal/domain/administrator"
 	"github.com/carlosclavijo/Nutricenter-Contracting/internal/domain/delivery"
-	patients "github.com/carlosclavijo/Nutricenter-Contracting/internal/domain/patient"
 	"github.com/carlosclavijo/Nutricenter-Contracting/internal/domain/valueobjects"
 	"github.com/google/uuid"
 	"time"
@@ -25,8 +23,6 @@ type Contract struct {
 	createdAt       time.Time
 	updatedAt       time.Time
 	deletedAt       *time.Time
-	administrator   *administrators.Administrator
-	patient         *patients.Patient
 }
 
 func NewContract(administratorId uuid.UUID, patientId uuid.UUID, contractType ContractType, start time.Time, costValue int, street string, number int, coordinates valueobjects.Coordinates) *Contract {
@@ -133,14 +129,6 @@ func (c *Contract) UpdatedAt() time.Time {
 
 func (c *Contract) DeletedAt() *time.Time {
 	return c.deletedAt
-}
-
-func (c *Contract) Administrator() *administrators.Administrator {
-	return c.administrator
-}
-
-func (c *Contract) Patient() *patients.Patient {
-	return c.patient
 }
 
 func NewContractFromDb(id, aId, pId uuid.UUID, cType, cStatus string, cDate, sDate, eDate time.Time, cost int, d []deliveries.Delivery, cAt, uAt time.Time, dAt *time.Time) *Contract {

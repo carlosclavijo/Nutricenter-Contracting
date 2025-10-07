@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"github.com/carlosclavijo/Nutricenter-Contracting/internal/application/administrator/dto"
+	"github.com/carlosclavijo/Nutricenter-Contracting/internal/application/administrator/mappers"
 	"github.com/carlosclavijo/Nutricenter-Contracting/internal/application/administrator/queries"
 	"log"
 )
@@ -14,7 +15,7 @@ func (h *AdministratorHandler) HandleGetByEmail(ctx context.Context, qry queries
 		return nil, err
 	}
 
-	administratorDTO := dto.MapToAdministratorDTO(administrator)
+	administratorDTO := mappers.MapToAdministratorDTO(administrator)
 
 	return administratorDTO, err
 }

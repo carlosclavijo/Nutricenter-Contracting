@@ -12,11 +12,10 @@ func TestDeliveryStatus(t *testing.T) {
 	cancelled := Cancelled
 	unknown, err := ParseDeliveryStatus("X")
 
-	assert.Equal(t, pending.String(), "pending")
-	assert.Equal(t, delivered.String(), "delivered")
-	assert.Equal(t, cancelled.String(), "cancelled")
-	assert.Equal(t, unknown.String(), "unknown")
-
+	assert.Equal(t, "pending", pending.String())
+	assert.Equal(t, "delivered", delivered.String())
+	assert.Equal(t, "cancelled", cancelled.String())
+	assert.Equal(t, "unknown", unknown.String())
 	assert.Equal(t, Pending, pending)
 	assert.Equal(t, Delivered, delivered)
 	assert.Equal(t, Cancelled, cancelled)
@@ -51,7 +50,6 @@ func TestDeliveryStatus(t *testing.T) {
 	assert.Equal(t, Cancelled, ds)
 
 	ds, err = ParseDeliveryStatus("invalid")
-	assert.Error(t, err)
 	assert.Equal(t, DeliveryStatus(""), ds)
-
+	assert.Error(t, err)
 }

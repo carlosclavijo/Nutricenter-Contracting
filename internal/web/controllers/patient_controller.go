@@ -31,21 +31,6 @@ func NewPatientHandler(db *sql.DB) *PatientController {
 	return &PatientController{*cmdHandler, *qryHandler}
 }
 
-type patientFull struct {
-	Id        uuid.UUID  `json:"id"`
-	FirstName string     `json:"first_name"`
-	LastName  string     `json:"last_name"`
-	Email     string     `json:"email"`
-	Password  string     `json:"password,omitempty"`
-	Gender    string     `json:"gender"`
-	Birth     time.Time  `json:"birth,omitempty"`
-	Phone     *string    `json:"phone,omitempty"`
-	LastLogin time.Time  `json:"last_login"`
-	CreatedAt time.Time  `json:"created_at"`
-	UpdatedAt time.Time  `json:"updated_at"`
-	DeletedAt *time.Time `json:"deleted_at,omitempty"`
-}
-
 func (h *PatientController) GetAllPatients(w http.ResponseWriter, r *http.Request) {
 	qry := queries.GetAllPatientsQuery{}
 	ptnts, err := h.qryHandler.HandleGetAll(r.Context(), qry)
@@ -231,7 +216,7 @@ func (h *PatientController) LoginPatient(w http.ResponseWriter, r *http.Request)
 		Password: req.Password,
 	}
 
-	ptnt, err := h.cmdHandler.HandleLogin(r.Context(), qry)
+	patient, err := h.cmdHandler.HandleLogin(r.Context(), qry)
 	if err != nil {
 		log.Printf("[controller:patient][Login] failed to retrieve patient with Email '%s': %v", req.Email, err)
 		writeJSON(w, http.StatusBadRequest, helpers.Response[any]{
@@ -244,9 +229,9 @@ func (h *PatientController) LoginPatient(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	writeJSON(w, http.StatusOK, helpers.Response[patients.Patient]{
+	writeJSON(w, http.StatusOK, helpers.Response[dto.PatientResponse]{
 		Success: true,
-		Data:    *ptnt,
+		Data:    *patient,
 	})
 }
 
@@ -283,9 +268,9 @@ func (h *PatientController) CreatePatient(w http.ResponseWriter, r *http.Request
 		Phone:     req.Phone,
 	}
 
-	ptnt, err := h.cmdHandler.HandleCreate(r.Context(), cmd)
+	patient, err := h.cmdHandler.HandleCreate(r.Context(), cmd)
 	if err != nil {
-		log.Printf("[controller:patient][CreatePatient] failed to create patient with command '%v': %v", ptnt, err)
+		log.Printf("[controller:patient][CreatePatient] failed to create patient with command '%v': %v", patient, err)
 		writeJSON(w, http.StatusInternalServerError, helpers.Response[any]{
 			Success: false,
 			Error: &helpers.Error{
@@ -296,10 +281,9 @@ func (h *PatientController) CreatePatient(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	ptntFull := mapToPatientFull(ptnt)
-	writeJSON(w, http.StatusCreated, helpers.Response[patientFull]{
+	writeJSON(w, http.StatusCreated, helpers.Response[dto.PatientResponse]{
 		Success: true,
-		Data:    ptntFull,
+		Data:    *patient,
 	})
 }
 
@@ -350,7 +334,7 @@ func (h *PatientController) UpdatePatient(w http.ResponseWriter, r *http.Request
 		Phone:     req.Phone,
 	}
 
-	ptnt, err := h.cmdHandler.HandleUpdate(r.Context(), cmd)
+	patient, err := h.cmdHandler.HandleUpdate(r.Context(), cmd)
 	if err != nil {
 		log.Printf("[controller:patient][UpdatePatient] failed to update patient with ID %s: %v", uid, err)
 		writeJSON(w, http.StatusInternalServerError, helpers.Response[any]{
@@ -363,10 +347,9 @@ func (h *PatientController) UpdatePatient(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	ptntFull := mapToPatientFull(ptnt)
-	writeJSON(w, http.StatusOK, helpers.Response[patientFull]{
+	writeJSON(w, http.StatusOK, helpers.Response[dto.PatientResponse]{
 		Success: true,
-		Data:    ptntFull,
+		Data:    *patient,
 	})
 }
 
@@ -385,7 +368,7 @@ func (h *PatientController) DeletePatient(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	ptnt, err := h.cmdHandler.HandleDelete(r.Context(), id)
+	patient, err := h.cmdHandler.HandleDelete(r.Context(), id)
 	if err != nil {
 		log.Printf("[controller:patient][DeletePatient] failed to delete patient with ID %s: %v", id, err)
 		writeJSON(w, http.StatusInternalServerError, helpers.Response[any]{
@@ -398,10 +381,9 @@ func (h *PatientController) DeletePatient(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	pntnFull := mapToPatientFull(ptnt)
-	writeJSON(w, http.StatusOK, helpers.Response[patientFull]{
+	writeJSON(w, http.StatusOK, helpers.Response[dto.PatientResponse]{
 		Success: true,
-		Data:    pntnFull,
+		Data:    *patient,
 	})
 }
 
@@ -421,7 +403,7 @@ func (h *PatientController) RestorePatient(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	ptnt, err := h.cmdHandler.HandleRestore(r.Context(), id)
+	patient, err := h.cmdHandler.HandleRestore(r.Context(), id)
 	if err != nil {
 		log.Printf("[controller:patient][RestorePatient] failed to restore patient with ID %s: %v", id, err)
 		writeJSON(w, http.StatusInternalServerError, helpers.Response[any]{
@@ -434,10 +416,9 @@ func (h *PatientController) RestorePatient(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	pntnFull := mapToPatientFull(ptnt)
-	writeJSON(w, http.StatusOK, helpers.Response[patientFull]{
+	writeJSON(w, http.StatusOK, helpers.Response[dto.PatientResponse]{
 		Success: true,
-		Data:    pntnFull,
+		Data:    *patient,
 	})
 }
 
@@ -502,29 +483,6 @@ func (h *PatientController) CountDeletedPatients(w http.ResponseWriter, r *http.
 		Success: true,
 		Length:  count,
 	})
-}
-
-func mapToPatientFull(admin *patients.Patient) patientFull {
-	var phoneStr *string
-	if admin.Phone() != nil {
-		p := admin.Phone().String()
-		phoneStr = p
-	}
-
-	return patientFull{
-		Id:        admin.Id(),
-		FirstName: admin.FirstName(),
-		LastName:  admin.LastName(),
-		Email:     admin.Email().Value(),
-		Password:  "",
-		Gender:    admin.Gender().String(),
-		Birth:     admin.Birth().Value(),
-		Phone:     phoneStr,
-		LastLogin: admin.LastLoginAt,
-		CreatedAt: admin.CreatedAt(),
-		UpdatedAt: admin.UpdatedAt,
-		DeletedAt: admin.DeletedAt,
-	}
 }
 
 func (h *PatientController) RegisterRoutes(r chi.Router) {

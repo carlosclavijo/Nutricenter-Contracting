@@ -16,10 +16,10 @@ type Patient struct {
 	gender      vo.Gender
 	birth       vo.BirthDate
 	phone       *vo.Phone
-	LastLoginAt time.Time
+	lastLoginAt time.Time
 	createdAt   time.Time
-	UpdatedAt   time.Time
-	DeletedAt   *time.Time
+	updatedAt   time.Time
+	deletedAt   *time.Time
 }
 
 func NewPatient(firstName, lastName string, email vo.Email, password vo.Password, gender vo.Gender, birth vo.BirthDate, phone *vo.Phone) *Patient {
@@ -35,40 +35,56 @@ func NewPatient(firstName, lastName string, email vo.Email, password vo.Password
 	}
 }
 
-func (admin *Patient) Id() uuid.UUID {
-	return admin.Entity.Id
+func (p *Patient) Id() uuid.UUID {
+	return p.Entity.Id
 }
 
-func (admin *Patient) FirstName() string {
-	return admin.firstName
+func (p *Patient) FirstName() string {
+	return p.firstName
 }
 
-func (admin *Patient) LastName() string {
-	return admin.lastName
+func (p *Patient) LastName() string {
+	return p.lastName
 }
 
-func (admin *Patient) Email() vo.Email {
-	return admin.email
+func (p *Patient) Email() vo.Email {
+	return p.email
 }
 
-func (admin *Patient) Password() vo.Password {
-	return admin.password
+func (p *Patient) Password() vo.Password {
+	return p.password
 }
 
-func (admin *Patient) Gender() vo.Gender {
-	return admin.gender
+func (p *Patient) Gender() vo.Gender {
+	return p.gender
 }
 
-func (admin *Patient) Birth() vo.BirthDate {
-	return admin.birth
+func (p *Patient) Birth() vo.BirthDate {
+	return p.birth
 }
 
-func (admin *Patient) Phone() *vo.Phone {
-	return admin.phone
+func (p *Patient) Phone() *vo.Phone {
+	return p.phone
 }
 
-func (admin *Patient) CreatedAt() time.Time {
-	return admin.createdAt
+func (p *Patient) LastLoginAt() time.Time {
+	return p.lastLoginAt
+}
+
+func (p *Patient) CreatedAt() time.Time {
+	return p.createdAt
+}
+
+func (p *Patient) UpdatedAt() time.Time {
+	return p.updatedAt
+}
+
+func (p *Patient) DeletedAt() *time.Time {
+	return p.deletedAt
+}
+
+func (p *Patient) Logged() {
+	p.lastLoginAt = time.Now()
 }
 
 func NewPatientFromDB(id uuid.UUID, firstName, lastName, email, password, gender string, birth time.Time, phone *string, lastLoginAt, createdAt, updatedAt time.Time, deletedAt *time.Time) *Patient {
@@ -87,9 +103,9 @@ func NewPatientFromDB(id uuid.UUID, firstName, lastName, email, password, gender
 		gender:        genderVo,
 		birth:         birthVo,
 		phone:         phoneVo,
-		LastLoginAt:   lastLoginAt,
+		lastLoginAt:   lastLoginAt,
 		createdAt:     createdAt,
-		UpdatedAt:     updatedAt,
-		DeletedAt:     deletedAt,
+		updatedAt:     updatedAt,
+		deletedAt:     deletedAt,
 	}
 }

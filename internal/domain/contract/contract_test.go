@@ -10,11 +10,16 @@ import (
 )
 
 func TestContract_Status(t *testing.T) {
-	coords, _ := valueobjects.NewCoordinates(40.7128, -74.0060)
-	contract1, _ := NewContractFactory().Create(uuid.New(), uuid.New(), HalfMonth, time.Now().AddDate(0, 0, 3), 100, "Main St", 123, coords)
-	contract2, _ := NewContractFactory().Create(uuid.New(), uuid.New(), HalfMonth, time.Now().AddDate(0, 0, 3), 100, "Main St", 123, coords)
+	coords, err := valueobjects.NewCoordinates(40.7128, -74.0060)
+	assert.NoError(t, err)
 
-	err := contract1.Active()
+	contract1, err := NewContractFactory().Create(uuid.New(), uuid.New(), HalfMonth, time.Now().AddDate(0, 0, 3), 100, "Main St", 123, coords)
+	assert.NoError(t, err)
+
+	contract2, err := NewContractFactory().Create(uuid.New(), uuid.New(), HalfMonth, time.Now().AddDate(0, 0, 3), 100, "Main St", 123, coords)
+	assert.NoError(t, err)
+
+	err = contract1.Active()
 	assert.NoError(t, err)
 	assert.Equal(t, Active, contract1.contractStatus)
 
@@ -72,7 +77,6 @@ func TestNewContractFromDb(t *testing.T) {
 			time.Now().AddDate(0, -2, 0),
 			nil,
 		},
-		// Agrega más casos hasta 10 o los que necesites
 	}
 
 	for _, tc := range cases {
@@ -84,6 +88,7 @@ func TestNewContractFromDb(t *testing.T) {
 			)
 
 			assert.NotNil(t, contract)
+
 			assert.Equal(t, tc.id, contract.Id())
 			assert.Equal(t, tc.adminId, contract.AdministratorId())
 			assert.Equal(t, tc.patientId, contract.PatientId())
@@ -93,7 +98,6 @@ func TestNewContractFromDb(t *testing.T) {
 			assert.Equal(t, tc.startDate.Format("2006-01-02"), contract.StartDate().Format("2006-01-02"))
 			assert.Equal(t, tc.endDate.Format("2006-01-02"), contract.EndDate().Format("2006-01-02"))
 			assert.Equal(t, tc.costValue, contract.CostValue())
-			assert.Empty(t, contract.Deliveries())
 			assert.Equal(t, tc.createdAt.Format(time.RFC3339), contract.CreatedAt().Format(time.RFC3339))
 			assert.Equal(t, tc.updatedAt.Format(time.RFC3339), contract.UpdatedAt().Format(time.RFC3339))
 			if tc.deletedAt != nil {
@@ -102,6 +106,8 @@ func TestNewContractFromDb(t *testing.T) {
 			} else {
 				assert.Nil(t, contract.DeletedAt())
 			}
+
+			assert.Empty(t, contract.Deliveries())
 		})
 	}
 }

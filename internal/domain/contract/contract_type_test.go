@@ -11,9 +11,9 @@ func TestContractType(t *testing.T) {
 	halfMonth := HalfMonth
 	other, err := ParseContractType("X")
 
-	assert.Equal(t, monthly.String(), "monthly")
-	assert.Equal(t, halfMonth.String(), "half-month")
-	assert.Equal(t, other.String(), "unknown")
+	assert.Equal(t, "monthly", monthly.String())
+	assert.Equal(t, "half-month", halfMonth.String())
+	assert.Equal(t, "unknown", other.String())
 
 	assert.Equal(t, Monthly, monthly)
 	assert.Equal(t, HalfMonth, halfMonth)

@@ -11,8 +11,8 @@ import (
 func TestAdministratorFactory_Valid(t *testing.T) {
 	factory := NewAdministratorFactory()
 
-	assert.Empty(t, factory)
 	assert.NotNil(t, factory)
+	assert.Empty(t, factory)
 
 	_, ok := factory.(AdministratorFactory)
 	assert.True(t, ok)
@@ -40,25 +40,28 @@ func TestAdministratorFactory_Valid(t *testing.T) {
 			fName := isAlpha(tc.firstName)
 			lName := isAlpha(tc.lastName)
 
+			assert.True(t, fName)
+			assert.True(t, lName)
+
 			email, err := valueobjects.NewEmail(tc.email)
 			assert.NotEmpty(t, email)
-			assert.Equal(t, email.Value(), tc.email)
+			assert.Equal(t, tc.email, email.Value())
 			assert.Nil(t, err)
 
 			password, err := valueobjects.NewPassword(tc.password)
 			assert.NotEmpty(t, password)
-			assert.Equal(t, password.String(), tc.password)
+			assert.Equal(t, tc.password, password.String())
 			assert.Nil(t, err)
 
 			gender, err := valueobjects.ParseGender(tc.gender)
 			assert.Contains(t, []string{"undefined", "male", "female"}, gender.String())
-			assert.NotEqual(t, gender, "")
-			assert.NotEqual(t, gender, "unknown")
+			assert.NotEqual(t, "", gender)
+			assert.NotEqual(t, "unknown", gender)
 			assert.NoError(t, err)
 
 			birth, err := valueobjects.NewBirthDate(tc.birth)
 			assert.NotEmpty(t, birth)
-			assert.Equal(t, birth.Value(), tc.birth)
+			assert.Equal(t, tc.birth, birth.Value())
 			assert.Nil(t, err)
 
 			phone, err := valueobjects.NewPhone(tc.phone)
@@ -66,18 +69,16 @@ func TestAdministratorFactory_Valid(t *testing.T) {
 				assert.Nil(t, err)
 			} else {
 				assert.NotEmpty(t, phone)
-				assert.Equal(t, phone.String(), tc.phone)
+				assert.Equal(t, tc.phone, phone.String())
 				assert.Nil(t, err)
 			}
 
 			admin, err := factory.Create(tc.firstName, tc.lastName, email, password, gender, birth, phone)
-
 			assert.NotNil(t, admin)
-			assert.Nil(t, err)
-			assert.NoError(t, err)
-
-			assert.True(t, fName)
-			assert.True(t, lName)
+			assert.NotNil(t, admin.Id())
+			assert.NotNil(t, admin.LastLoginAt())
+			assert.NotNil(t, admin.CreatedAt())
+			assert.NotNil(t, admin.UpdatedAt())
 
 			assert.Equal(t, tc.firstName, admin.FirstName())
 			assert.Equal(t, tc.lastName, admin.LastName())
@@ -85,7 +86,7 @@ func TestAdministratorFactory_Valid(t *testing.T) {
 			assert.Equal(t, tc.password, admin.Password().String())
 			assert.Equal(t, gender.String(), admin.Gender().String())
 			assert.Contains(t, []string{"undefined", "male", "female"}, admin.Gender().String())
-			assert.Equal(t, tc.birth.Format("2006-01-02"), admin.Birth().Value().Format("2006-01-02"))
+			assert.Equal(t, tc.birth.Format(time.RFC3339), admin.Birth().Value().Format(time.RFC3339))
 
 			if tc.phone != nil {
 				assert.NotNil(t, admin.Phone())
@@ -94,14 +95,13 @@ func TestAdministratorFactory_Valid(t *testing.T) {
 				assert.Nil(t, admin.Phone())
 			}
 
-			assert.NotNil(t, admin.Id())
-			assert.NotNil(t, admin.LastLoginAt)
-			assert.Empty(t, admin.LastLoginAt)
-			assert.NotNil(t, admin.CreatedAt())
+			assert.Empty(t, admin.LastLoginAt())
 			assert.Empty(t, admin.CreatedAt())
-			assert.NotNil(t, admin.UpdatedAt)
-			assert.Empty(t, admin.UpdatedAt)
-			assert.Nil(t, admin.DeletedAt)
+			assert.Empty(t, admin.UpdatedAt())
+			assert.Nil(t, admin.DeletedAt())
+
+			assert.Nil(t, err)
+			assert.NoError(t, err)
 		})
 	}
 }
@@ -109,16 +109,14 @@ func TestAdministratorFactory_Valid(t *testing.T) {
 func TestAdministratorFactory_Invalid_Empty(t *testing.T) {
 	factory := NewAdministratorFactory()
 	admin, err := factory.Create("", "Clavijo", valueobjects.Email{}, valueobjects.Password{}, "", valueobjects.BirthDate{}, nil)
-
-	assert.Nil(t, admin)
 	assert.NotNil(t, err)
 	assert.ErrorContains(t, err, "firstName is empty")
+	assert.Nil(t, admin)
 
 	admin, err = factory.Create("Carlos", "", valueobjects.Email{}, valueobjects.Password{}, "", valueobjects.BirthDate{}, nil)
-
-	assert.Nil(t, admin)
 	assert.NotNil(t, err)
 	assert.ErrorContains(t, err, "lastName is empty")
+	assert.Nil(t, admin)
 }
 
 func TestAdministratorFactory_Invalid_LongNames(t *testing.T) {
@@ -126,39 +124,43 @@ func TestAdministratorFactory_Invalid_LongNames(t *testing.T) {
 	name := "ThisNameIsWayTooLongToBeConsideredValidBecauseItExceedsTheMaximumLengthOfOneHundredCharactersWhichIsNotAllowed"
 	admin, err := factory.Create(name, "Clavijo", valueobjects.Email{}, valueobjects.Password{}, "", valueobjects.BirthDate{}, nil)
 
-	assert.Nil(t, admin)
 	assert.NotNil(t, err)
 
 	expected := fmt.Sprintf("firstName '%s' is too long('%d'), maximum length is 100 characters", name, len(name))
 	assert.ErrorContains(t, err, expected)
 
+	assert.Nil(t, admin)
+
 	name = "ThisLastNameIsWayTooLongToBeConsideredValidBecauseItExceedsTheMaximumLengthOfOneHundredCharactersWhichIsNotAllowed"
 	admin, err = factory.Create("Carlos", name, valueobjects.Email{}, valueobjects.Password{}, "", valueobjects.BirthDate{}, nil)
 
-	assert.Nil(t, admin)
 	assert.NotNil(t, err)
 
 	expected = fmt.Sprintf("lastName '%s' is too long('%d'), maximum length is 100 characters", name, len(name))
 	assert.ErrorContains(t, err, expected)
+
+	assert.Nil(t, admin)
 }
 
 func TestAdministratorFactory_Invalid_NonAlpha(t *testing.T) {
 	factory := NewAdministratorFactory()
 	admin, err := factory.Create("Carlos123", "Clavijo", valueobjects.Email{}, valueobjects.Password{}, "", valueobjects.BirthDate{}, nil)
 
-	assert.Nil(t, admin)
 	assert.NotNil(t, err)
 
 	expected := fmt.Sprintf("firstName '%s' contains non-alphabetic characters", "Carlos123")
 	assert.ErrorContains(t, err, expected)
 
+	assert.Nil(t, admin)
+
 	admin, err = factory.Create("Carlos", "Clavijo!", valueobjects.Email{}, valueobjects.Password{}, "", valueobjects.BirthDate{}, nil)
 
-	assert.Nil(t, admin)
 	assert.NotNil(t, err)
 
 	expected = fmt.Sprintf("lastName '%s' contains non-alphabetic characters", "Clavijo!")
 	assert.ErrorContains(t, err, expected)
+
+	assert.Nil(t, admin)
 }
 
 func TestIsAlpha(t *testing.T) {

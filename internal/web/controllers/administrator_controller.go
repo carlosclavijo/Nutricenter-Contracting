@@ -31,21 +31,6 @@ func NewAdministratorHandler(db *sql.DB) *AdministratorController {
 	return &AdministratorController{*cmdHandler, *qryHandler}
 }
 
-type adminFull struct {
-	Id        uuid.UUID  `json:"id"`
-	FirstName string     `json:"first_name"`
-	LastName  string     `json:"last_name"`
-	Email     string     `json:"email"`
-	Password  string     `json:"password"`
-	Gender    string     `json:"gender"`
-	Birth     time.Time  `json:"birth,omitempty"`
-	Phone     *string    `json:"phone,omitempty"`
-	LastLogin time.Time  `json:"last_login"`
-	CreatedAt time.Time  `json:"created_at"`
-	UpdatedAt time.Time  `json:"updated_at"`
-	DeletedAt *time.Time `json:"deleted_at,omitempty"`
-}
-
 func (h *AdministratorController) GetAllAdministrators(w http.ResponseWriter, r *http.Request) {
 	qry := queries.GetAllAdministratorsQuery{}
 	admins, err := h.qryHandler.HandleGetAll(r.Context(), qry)
@@ -244,7 +229,7 @@ func (h *AdministratorController) LoginAdministrator(w http.ResponseWriter, r *h
 		return
 	}
 
-	writeJSON(w, http.StatusOK, helpers.Response[administrators.Administrator]{
+	writeJSON(w, http.StatusOK, helpers.Response[dto.AdministratorResponse]{
 		Success: true,
 		Data:    *admin,
 	})
@@ -296,10 +281,9 @@ func (h *AdministratorController) CreateAdministrator(w http.ResponseWriter, r *
 		return
 	}
 
-	admFull := mapToAdminFull(admin)
-	writeJSON(w, http.StatusCreated, helpers.Response[adminFull]{
+	writeJSON(w, http.StatusCreated, helpers.Response[dto.AdministratorResponse]{
 		Success: true,
-		Data:    admFull,
+		Data:    *admin,
 	})
 }
 
@@ -363,10 +347,9 @@ func (h *AdministratorController) UpdateAdministrator(w http.ResponseWriter, r *
 		return
 	}
 
-	admFull := mapToAdminFull(admin)
-	writeJSON(w, http.StatusOK, helpers.Response[adminFull]{
+	writeJSON(w, http.StatusOK, helpers.Response[dto.AdministratorResponse]{
 		Success: true,
-		Data:    admFull,
+		Data:    *admin,
 	})
 }
 
@@ -398,10 +381,9 @@ func (h *AdministratorController) DeleteAdministrator(w http.ResponseWriter, r *
 		return
 	}
 
-	admFull := mapToAdminFull(admin)
-	writeJSON(w, http.StatusOK, helpers.Response[adminFull]{
+	writeJSON(w, http.StatusOK, helpers.Response[dto.AdministratorResponse]{
 		Success: true,
-		Data:    admFull,
+		Data:    *admin,
 	})
 }
 
@@ -434,10 +416,9 @@ func (h *AdministratorController) RestoreAdministrator(w http.ResponseWriter, r 
 		return
 	}
 
-	admFull := mapToAdminFull(admin)
-	writeJSON(w, http.StatusOK, helpers.Response[adminFull]{
+	writeJSON(w, http.StatusOK, helpers.Response[dto.AdministratorResponse]{
 		Success: true,
-		Data:    admFull,
+		Data:    *admin,
 	})
 }
 
@@ -510,29 +491,6 @@ func writeJSON(w http.ResponseWriter, status int, payload any) {
 	if err := json.NewEncoder(w).Encode(payload); err != nil {
 		log.Printf("failed to encode response: %v", err)
 		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
-	}
-}
-
-func mapToAdminFull(admin *administrators.Administrator) adminFull {
-	var phoneStr *string
-	if admin.Phone() != nil {
-		p := admin.Phone().String()
-		phoneStr = p
-	}
-
-	return adminFull{
-		Id:        admin.Id(),
-		FirstName: admin.FirstName(),
-		LastName:  admin.LastName(),
-		Email:     admin.Email().Value(),
-		Password:  "",
-		Gender:    admin.Gender().String(),
-		Birth:     admin.Birth().Value(),
-		Phone:     phoneStr,
-		LastLogin: admin.LastLoginAt,
-		CreatedAt: admin.CreatedAt(),
-		UpdatedAt: admin.UpdatedAt,
-		DeletedAt: admin.DeletedAt,
 	}
 }
 

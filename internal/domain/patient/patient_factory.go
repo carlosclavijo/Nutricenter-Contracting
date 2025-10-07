@@ -14,7 +14,7 @@ type PatientFactory interface {
 
 type patientFactory struct{}
 
-func (a patientFactory) Create(firstName, lastName string, email vo.Email, password vo.Password, gender vo.Gender, birth vo.BirthDate, phone *vo.Phone) (*Patient, error) {
+func (patientFactory) Create(firstName, lastName string, email vo.Email, password vo.Password, gender vo.Gender, birth vo.BirthDate, phone *vo.Phone) (*Patient, error) {
 	if firstName == "" {
 		log.Printf("[factory:patient] firstName '%s' is empty", firstName)
 		return nil, fmt.Errorf("firstName is empty")

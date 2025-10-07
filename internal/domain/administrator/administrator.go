@@ -16,10 +16,10 @@ type Administrator struct {
 	gender      vo.Gender
 	birth       vo.BirthDate
 	phone       *vo.Phone
-	LastLoginAt time.Time
+	lastLoginAt time.Time
 	createdAt   time.Time
-	UpdatedAt   time.Time
-	DeletedAt   *time.Time
+	updatedAt   time.Time
+	deletedAt   *time.Time
 }
 
 func NewAdministrator(firstName, lastName string, email vo.Email, password vo.Password, gender vo.Gender, birth vo.BirthDate, phone *vo.Phone) *Administrator {
@@ -35,40 +35,56 @@ func NewAdministrator(firstName, lastName string, email vo.Email, password vo.Pa
 	}
 }
 
-func (admin *Administrator) Id() uuid.UUID {
-	return admin.Entity.Id
+func (a *Administrator) Id() uuid.UUID {
+	return a.Entity.Id
 }
 
-func (admin *Administrator) FirstName() string {
-	return admin.firstName
+func (a *Administrator) FirstName() string {
+	return a.firstName
 }
 
-func (admin *Administrator) LastName() string {
-	return admin.lastName
+func (a *Administrator) LastName() string {
+	return a.lastName
 }
 
-func (admin *Administrator) Email() vo.Email {
-	return admin.email
+func (a *Administrator) Email() vo.Email {
+	return a.email
 }
 
-func (admin *Administrator) Password() vo.Password {
-	return admin.password
+func (a *Administrator) Password() vo.Password {
+	return a.password
 }
 
-func (admin *Administrator) Gender() vo.Gender {
-	return admin.gender
+func (a *Administrator) Gender() vo.Gender {
+	return a.gender
 }
 
-func (admin *Administrator) Birth() vo.BirthDate {
-	return admin.birth
+func (a *Administrator) Birth() vo.BirthDate {
+	return a.birth
 }
 
-func (admin *Administrator) Phone() *vo.Phone {
-	return admin.phone
+func (a *Administrator) Phone() *vo.Phone {
+	return a.phone
 }
 
-func (admin *Administrator) CreatedAt() time.Time {
-	return admin.createdAt
+func (a *Administrator) LastLoginAt() time.Time {
+	return a.lastLoginAt
+}
+
+func (a *Administrator) CreatedAt() time.Time {
+	return a.createdAt
+}
+
+func (a *Administrator) UpdatedAt() time.Time {
+	return a.updatedAt
+}
+
+func (a *Administrator) DeletedAt() *time.Time {
+	return a.deletedAt
+}
+
+func (a *Administrator) Logged() {
+	a.lastLoginAt = time.Now()
 }
 
 func NewAdministratorFromDB(id uuid.UUID, firstName string, lastName string, email string, password string, gender string, birth time.Time, phone *string, lastLoginAt time.Time, createdAt time.Time, updatedAt time.Time, deletedAt *time.Time) *Administrator {
@@ -87,9 +103,9 @@ func NewAdministratorFromDB(id uuid.UUID, firstName string, lastName string, ema
 		gender:        genderVo,
 		birth:         birthVo,
 		phone:         phoneVo,
-		LastLoginAt:   lastLoginAt,
+		lastLoginAt:   lastLoginAt,
 		createdAt:     createdAt,
-		UpdatedAt:     updatedAt,
-		DeletedAt:     deletedAt,
+		updatedAt:     updatedAt,
+		deletedAt:     deletedAt,
 	}
 }

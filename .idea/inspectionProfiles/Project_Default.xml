@@ -8,6 +8,7 @@
         <function importPath="github.com/carlosclavijo/Nutricenter-Contracting/internal/domain/contract" name="ParseContractStatus" />
         <function importPath="github.com/carlosclavijo/Nutricenter-Contracting/internal/domain/contract" name="ParseContractType" />
         <function importPath="github.com/carlosclavijo/Nutricenter-Contracting/internal/domain/delivery" name="ParseDeliveryStatus" />
+        <function importPath="github.com/carlosclavijo/Nutricenter-Contracting/internal/domain/valueobjects" name="NewBirthDate" />
       </functions>
       <methods>
         <method importPath="github.com/carlosclavijo/Nutricenter-Contracting/internal/application/administrator/service" receiver="*AdministratorService" name="Create" />

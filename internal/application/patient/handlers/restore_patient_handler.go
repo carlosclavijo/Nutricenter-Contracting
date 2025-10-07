@@ -3,12 +3,13 @@ package handlers
 import (
 	"context"
 	"errors"
-	"github.com/carlosclavijo/Nutricenter-Contracting/internal/domain/patient"
+	"github.com/carlosclavijo/Nutricenter-Contracting/internal/application/patient/dto"
+	"github.com/carlosclavijo/Nutricenter-Contracting/internal/application/patient/mappers"
 	"github.com/google/uuid"
 	"log"
 )
 
-func (h *PatientHandler) HandleRestore(ctx context.Context, id uuid.UUID) (*patients.Patient, error) {
+func (h *PatientHandler) HandleRestore(ctx context.Context, id uuid.UUID) (*dto.PatientResponse, error) {
 	if id == uuid.Nil {
 		log.Printf("[handler:patient][HandleRestore] Id '%v' is nil", id)
 		return nil, errors.New("the id is not valid")
@@ -23,11 +24,14 @@ func (h *PatientHandler) HandleRestore(ctx context.Context, id uuid.UUID) (*pati
 		return nil, errors.New("patient not found")
 	}
 
-	admin, err := h.repository.Restore(ctx, id)
+	patient, err := h.repository.Restore(ctx, id)
 	if err != nil {
 		log.Printf("[handler:patient][HandleRestore] error Deleting Patient: %v", err)
 		return nil, err
 	}
 
-	return admin, nil
+	patientDto := mappers.MapToPatientDTO(patient)
+	patientResponse := mappers.MapToPatientResponse(patientDto, patient.LastLoginAt(), patient.CreatedAt(), patient.UpdatedAt(), patient.DeletedAt())
+
+	return patientResponse, nil
 }

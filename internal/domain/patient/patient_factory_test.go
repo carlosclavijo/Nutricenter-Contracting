@@ -11,8 +11,8 @@ import (
 func TestPatientFactory_Valid(t *testing.T) {
 	factory := NewPatientFactory()
 
-	assert.Empty(t, factory)
 	assert.NotNil(t, factory)
+	assert.Empty(t, factory)
 
 	_, ok := factory.(PatientFactory)
 	assert.True(t, ok)
@@ -40,14 +40,17 @@ func TestPatientFactory_Valid(t *testing.T) {
 			fName := isAlpha(tc.firstName)
 			lName := isAlpha(tc.lastName)
 
+			assert.True(t, fName)
+			assert.True(t, lName)
+
 			email, err := valueobjects.NewEmail(tc.email)
 			assert.NotEmpty(t, email)
-			assert.Equal(t, email.Value(), tc.email)
+			assert.Equal(t, tc.email, email.Value())
 			assert.Nil(t, err)
 
 			password, er := valueobjects.NewPassword(tc.password)
 			assert.NotEmpty(t, password)
-			assert.Equal(t, password.String(), tc.password)
+			assert.Equal(t, tc.password, password.String())
 			assert.Nil(t, er)
 
 			gender, err := valueobjects.ParseGender(tc.gender)
@@ -58,7 +61,7 @@ func TestPatientFactory_Valid(t *testing.T) {
 
 			birth, err := valueobjects.NewBirthDate(tc.birth)
 			assert.NotEmpty(t, birth)
-			assert.Equal(t, birth.Value(), tc.birth)
+			assert.Equal(t, tc.birth, birth.Value())
 			assert.Nil(t, err)
 
 			phone, err := valueobjects.NewPhone(tc.phone)
@@ -66,18 +69,17 @@ func TestPatientFactory_Valid(t *testing.T) {
 				assert.Nil(t, err)
 			} else {
 				assert.NotEmpty(t, phone)
-				assert.Equal(t, phone.String(), tc.phone)
+				assert.Equal(t, tc.phone, phone.String())
 				assert.Nil(t, err)
 			}
 
 			patient, err := factory.Create(tc.firstName, tc.lastName, email, password, gender, birth, phone)
 
 			assert.NotNil(t, patient)
-			assert.Nil(t, err)
-			assert.NoError(t, err)
-
-			assert.True(t, fName)
-			assert.True(t, lName)
+			assert.NotNil(t, patient.Id())
+			assert.NotNil(t, patient.LastLoginAt())
+			assert.NotNil(t, patient.CreatedAt())
+			assert.NotNil(t, patient.UpdatedAt())
 
 			assert.Equal(t, tc.firstName, patient.FirstName())
 			assert.Equal(t, tc.lastName, patient.LastName())
@@ -85,23 +87,21 @@ func TestPatientFactory_Valid(t *testing.T) {
 			assert.Equal(t, tc.password, patient.Password().String())
 			assert.Equal(t, gender.String(), patient.Gender().String())
 			assert.Contains(t, []string{"undefined", "male", "female"}, patient.Gender().String())
-			assert.Equal(t, tc.birth.Format("2006-01-02"), patient.Birth().Value().Format("2006-01-02"))
+			assert.Equal(t, patient.Birth().Value().Format(time.RFC3339), tc.birth.Format(time.RFC3339))
 
 			if tc.phone != nil {
 				assert.NotNil(t, patient.Phone())
-				assert.Equal(t, *tc.phone, *patient.Phone().String())
+				assert.Equal(t, *patient.Phone().String(), *tc.phone)
 			} else {
 				assert.Nil(t, patient.Phone())
 			}
 
-			assert.NotNil(t, patient.Id())
-			assert.NotNil(t, patient.LastLoginAt)
-			assert.Empty(t, patient.LastLoginAt)
-			assert.NotNil(t, patient.CreatedAt())
+			assert.Empty(t, patient.LastLoginAt())
 			assert.Empty(t, patient.CreatedAt())
-			assert.NotNil(t, patient.UpdatedAt)
-			assert.NotNil(t, patient.UpdatedAt)
-			assert.Nil(t, patient.DeletedAt)
+			assert.Empty(t, patient.UpdatedAt())
+			assert.Nil(t, patient.DeletedAt())
+			assert.Nil(t, err)
+			assert.NoError(t, err)
 		})
 	}
 }
@@ -110,15 +110,15 @@ func TestPatientFactory_Invalid_Empty(t *testing.T) {
 	factory := NewPatientFactory()
 	patient, err := factory.Create("", "Clavijo", valueobjects.Email{}, valueobjects.Password{}, "", valueobjects.BirthDate{}, nil)
 
-	assert.Nil(t, patient)
 	assert.NotNil(t, err)
 	assert.ErrorContains(t, err, "firstName is empty")
+	assert.Nil(t, patient)
 
 	patient, err = factory.Create("Carlos", "", valueobjects.Email{}, valueobjects.Password{}, "", valueobjects.BirthDate{}, nil)
 
-	assert.Nil(t, patient)
 	assert.NotNil(t, err)
 	assert.ErrorContains(t, err, "lastName is empty")
+	assert.Nil(t, patient)
 }
 
 func TestPatientFactory_Invalid_LongNames(t *testing.T) {
@@ -126,39 +126,35 @@ func TestPatientFactory_Invalid_LongNames(t *testing.T) {
 	name := "ThisNameIsWayTooLongToBeConsideredValidBecauseItExceedsTheMaximumLengthOfOneHundredCharactersWhichIsNotAllowed"
 	patient, err := factory.Create(name, "Clavijo", valueobjects.Email{}, valueobjects.Password{}, "", valueobjects.BirthDate{}, nil)
 
-	assert.Nil(t, patient)
 	assert.NotNil(t, err)
-
 	expected := fmt.Sprintf("firstName '%s' is too long('%d'), maximum length is 100 characters", name, len(name))
 	assert.ErrorContains(t, err, expected)
+	assert.Nil(t, patient)
 
 	name = "ThisLastNameIsWayTooLongToBeConsideredValidBecauseItExceedsTheMaximumLengthOfOneHundredCharactersWhichIsNotAllowed"
 	patient, err = factory.Create("Carlos", name, valueobjects.Email{}, valueobjects.Password{}, "", valueobjects.BirthDate{}, nil)
 
-	assert.Nil(t, patient)
 	assert.NotNil(t, err)
-
 	expected = fmt.Sprintf("lastName '%s' is too long('%d'), maximum length is 100 characters", name, len(name))
 	assert.ErrorContains(t, err, expected)
+	assert.Nil(t, patient)
 }
 
 func TestPatientFactory_Invalid_NonAlpha(t *testing.T) {
 	factory := NewPatientFactory()
 	patient, err := factory.Create("Carlos123", "Clavijo", valueobjects.Email{}, valueobjects.Password{}, "", valueobjects.BirthDate{}, nil)
 
-	assert.Nil(t, patient)
 	assert.NotNil(t, err)
-
 	expected := fmt.Sprintf("firstName '%s' contains non-alphabetic characters", "Carlos123")
 	assert.ErrorContains(t, err, expected)
+	assert.Nil(t, patient)
 
 	patient, err = factory.Create("Carlos", "Clavijo!", valueobjects.Email{}, valueobjects.Password{}, "", valueobjects.BirthDate{}, nil)
 
-	assert.Nil(t, patient)
 	assert.NotNil(t, err)
-
 	expected = fmt.Sprintf("lastName '%s' contains non-alphabetic characters", "Clavijo!")
 	assert.ErrorContains(t, err, expected)
+	assert.Nil(t, patient)
 }
 
 func TestIsAlpha(t *testing.T) {

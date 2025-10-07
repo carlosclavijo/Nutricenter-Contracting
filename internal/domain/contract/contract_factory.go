@@ -14,7 +14,7 @@ type ContractFactory interface {
 
 type contractFactory struct{}
 
-func (c contractFactory) Create(administratorId, patientId uuid.UUID, contractType ContractType, start time.Time, cost int, street string, number int, coordinates valueobjects.Coordinates) (*Contract, error) {
+func (contractFactory) Create(administratorId, patientId uuid.UUID, contractType ContractType, start time.Time, cost int, street string, number int, coordinates valueobjects.Coordinates) (*Contract, error) {
 	if administratorId == uuid.Nil {
 		log.Printf("[factory:contract] administratorId '%s' is not a valid UUID", administratorId)
 		return nil, fmt.Errorf("administratorId is not a valid UUID")

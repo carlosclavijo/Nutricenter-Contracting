@@ -1,6 +1,8 @@
 package handlers
 
-import "github.com/carlosclavijo/Nutricenter-Contracting/internal/domain/administrator"
+import (
+	"github.com/carlosclavijo/Nutricenter-Contracting/internal/domain/administrator"
+)
 
 type AdministratorHandler struct {
 	repository administrators.AdministratorRepository

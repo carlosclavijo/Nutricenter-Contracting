@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"github.com/carlosclavijo/Nutricenter-Contracting/internal/application/patient/dto"
+	"github.com/carlosclavijo/Nutricenter-Contracting/internal/application/patient/mappers"
 	"github.com/carlosclavijo/Nutricenter-Contracting/internal/application/patient/queries"
 	"log"
 )
@@ -14,6 +15,6 @@ func (h *PatientHandler) HandleGetByEmail(ctx context.Context, qry queries.GetPa
 		return nil, err
 	}
 
-	patientDTO := dto.MapToPatientDTO(patient)
+	patientDTO := mappers.MapToPatientDTO(patient)
 	return patientDTO, err
 }

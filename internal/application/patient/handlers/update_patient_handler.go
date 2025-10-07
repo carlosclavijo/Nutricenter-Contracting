@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"github.com/carlosclavijo/Nutricenter-Contracting/internal/application/patient/commands"
+	"github.com/carlosclavijo/Nutricenter-Contracting/internal/application/patient/dto"
+	"github.com/carlosclavijo/Nutricenter-Contracting/internal/application/patient/mappers"
 	"github.com/carlosclavijo/Nutricenter-Contracting/internal/domain/abstractions"
 	"github.com/carlosclavijo/Nutricenter-Contracting/internal/domain/patient"
 	"github.com/carlosclavijo/Nutricenter-Contracting/internal/domain/valueobjects"
@@ -11,7 +13,7 @@ import (
 	"log"
 )
 
-func (h *PatientHandler) HandleUpdate(ctx context.Context, cmd commands.UpdatePatientCommand) (*patients.Patient, error) {
+func (h *PatientHandler) HandleUpdate(ctx context.Context, cmd commands.UpdatePatientCommand) (*dto.PatientResponse, error) {
 	exist, err := h.repository.ExistById(ctx, cmd.Id)
 	if err != nil {
 		log.Printf("[handler:patient][HandleUpdate] error verifying if Patient exists: %v", err)
@@ -65,5 +67,8 @@ func (h *PatientHandler) HandleUpdate(ctx context.Context, cmd commands.UpdatePa
 		return nil, err
 	}
 
-	return patient, nil
+	patientDto := mappers.MapToPatientDTO(patient)
+	patientResponse := mappers.MapToPatientResponse(patientDto, patient.LastLoginAt(), patient.CreatedAt(), patient.UpdatedAt(), patient.DeletedAt())
+
+	return patientResponse, nil
 }
