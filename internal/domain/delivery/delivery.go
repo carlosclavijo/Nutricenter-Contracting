@@ -1,11 +1,17 @@
 package deliveries
 
 import (
+	"errors"
 	"fmt"
 	"github.com/carlosclavijo/Nutricenter-Contracting/internal/domain/abstractions"
 	"github.com/carlosclavijo/Nutricenter-Contracting/internal/domain/valueobjects"
 	"github.com/google/uuid"
 	"time"
+)
+
+var (
+	ErrNotPendingDelivery         = errors.New("delivery is not pending so you can't update it")
+	ErrCannotChangeDeliveryStatus = errors.New("cannot make that status change")
 )
 
 type Delivery struct {
@@ -63,19 +69,20 @@ func (d *Delivery) DeletedAt() *time.Time {
 
 func (d *Delivery) Update(street string, number int, coordinates valueobjects.Coordinates) error {
 	if d.Status() != Pending {
-		return fmt.Errorf("delivered is not pending so you can't update it")
+		return ErrNotPendingDelivery
 	}
 	d.street = street
 	d.number = number
 	d.coordinates = coordinates
 	d.updatedAt = time.Now()
+
 	return nil
 
 }
 
 func (d *Delivery) ChangeStatus(status DeliveryStatus) error {
 	if status != Delivered && status != Cancelled && d.status != Pending {
-		return fmt.Errorf("cannot change to that '%s' status", status)
+		return fmt.Errorf("%w: got %s", ErrCannotChangeDeliveryStatus, status)
 	}
 
 	d.status = status
@@ -94,9 +101,16 @@ func NewDelivery(contractId uuid.UUID, date time.Time, street string, number int
 	}
 }
 
-func NewDeliveryFromDB(id, contractId uuid.UUID, date time.Time, street string, number int, latitude, longitude float64, status string, createdAt time.Time, updatedAt time.Time, deletedAt *time.Time) *Delivery {
-	coordinates, _ := valueobjects.NewCoordinates(latitude, longitude)
-	newStatus, _ := ParseDeliveryStatus(status)
+func NewDeliveryFromDB(id, contractId uuid.UUID, date time.Time, street string, number int, latitude, longitude float64, status string, createdAt time.Time, updatedAt time.Time, deletedAt *time.Time) (*Delivery, error) {
+	coordinates, err := valueobjects.NewCoordinates(latitude, longitude)
+	if err != nil {
+		return nil, fmt.Errorf("invalid coordinates in DB: %w", err)
+	}
+
+	newStatus, err := ParseDeliveryStatus(status)
+	if err != nil {
+		return nil, fmt.Errorf("invalid status in DB: %w", err)
+	}
 
 	return &Delivery{
 		Entity:      abstractions.NewEntity(id),
@@ -109,5 +123,5 @@ func NewDeliveryFromDB(id, contractId uuid.UUID, date time.Time, street string, 
 		createdAt:   createdAt,
 		updatedAt:   updatedAt,
 		deletedAt:   deletedAt,
-	}
+	}, nil
 }

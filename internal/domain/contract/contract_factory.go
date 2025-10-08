@@ -1,6 +1,7 @@
 package contracts
 
 import (
+	"errors"
 	"fmt"
 	"github.com/carlosclavijo/Nutricenter-Contracting/internal/domain/valueobjects"
 	"github.com/google/uuid"
@@ -12,42 +13,52 @@ type ContractFactory interface {
 	Create(administratorId, patientId uuid.UUID, contractType ContractType, start time.Time, cost int, street string, number int, coordinates valueobjects.Coordinates) (*Contract, error)
 }
 
+var (
+	ErrAdministratorIdContract       = errors.New("administratorId is not a valid UUID")
+	ErrPatientIdContract             = errors.New("patientId is not a valid UUID")
+	ErrTypeContract                  = errors.New("contract type is not valid")
+	ErrStartDateContract             = errors.New("start date is before two days after tomorrow")
+	ErrCostNonPositiveNumberContract = errors.New("cost is not a positive number")
+	ErrEmptyStreetContract           = errors.New("street name is empty")
+	ErrNumberPositiveNumberContract  = errors.New("number is not a positive number")
+)
+
 type contractFactory struct{}
 
 func (contractFactory) Create(administratorId, patientId uuid.UUID, contractType ContractType, start time.Time, cost int, street string, number int, coordinates valueobjects.Coordinates) (*Contract, error) {
 	if administratorId == uuid.Nil {
 		log.Printf("[factory:contract] administratorId '%s' is not a valid UUID", administratorId)
-		return nil, fmt.Errorf("administratorId is not a valid UUID")
+		return nil, ErrAdministratorIdContract
 	}
 
 	if patientId == uuid.Nil {
 		log.Printf("[factory:contract] patientId '%s' is not a valid UUID", patientId)
-		return nil, fmt.Errorf("patientId is not a valid UUID")
+		return nil, ErrPatientIdContract
 	}
 
 	if contractType != HalfMonth && contractType != Monthly {
 		log.Printf("[factory:contract] contractType '%s' is invalid", contractType)
-		return nil, fmt.Errorf("contractType '%s' is invalid", contractType)
+		return nil, fmt.Errorf("%w: got %s", ErrTypeContract, contractType.String())
 	}
 
 	if !isAtLeastTwoDaysFromToday(start) {
 		log.Printf("[factory:contract] startDate '%s' is before it could be", contractType)
-		return nil, fmt.Errorf("startDate '%v' is not before two days after tomorrow", start)
+		return nil, fmt.Errorf("%w: got %v", ErrStartDateContract, start)
 	}
 
-	if cost < 0 {
+	if cost <= 0 {
 		log.Printf("[factory:contract] cost '%v' suppose to be a positive number", contractType)
-		return nil, fmt.Errorf("cost '%d' suppose to be a positive number", cost)
+		return nil, fmt.Errorf("%w: got %d", ErrCostNonPositiveNumberContract, cost)
 	}
 
 	if street == "" {
 		log.Printf("[factory:contract] street '%s' is empty", street)
-		return nil, fmt.Errorf("street name is empty")
+		return nil, ErrEmptyStreetContract
 	}
 
 	if number <= 0 {
 		log.Printf("[factory:contract] number '%d' needs to be a positive number", number)
-		return nil, fmt.Errorf("number '%d' needs to be a positive number", number)
+		return nil, fmt.Errorf("%w: got %d", ErrNumberPositiveNumberContract, number)
 	}
 
 	log.Printf("[factory:contract] contractType '%s' is valid", contractType)

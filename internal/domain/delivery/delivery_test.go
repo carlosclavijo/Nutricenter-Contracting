@@ -1,7 +1,6 @@
 package deliveries
 
 import (
-	"fmt"
 	"github.com/carlosclavijo/Nutricenter-Contracting/internal/domain/valueobjects"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -11,7 +10,7 @@ import (
 	"time"
 )
 
-func TestNewDelivery(t *testing.T) {
+func TestNewDeliveryFromDB(t *testing.T) {
 	deletedAts := []time.Time{time.Now(), time.Now().AddDate(0, -1, 0), time.Now().AddDate(0, -2, 0), time.Now().AddDate(0, -3, 0), time.Now().AddDate(0, -4, 0)}
 	now := time.Now()
 	cases := []struct {
@@ -38,6 +37,7 @@ func TestNewDelivery(t *testing.T) {
 		var newStatus DeliveryStatus
 		t.Run(tc.name, func(t *testing.T) {
 			coords, err := valueobjects.NewCoordinates(tc.lat, tc.lon)
+
 			assert.NoError(t, err)
 
 			d := NewDelivery(uuid.New(), tc.date, tc.street, tc.number, coords)
@@ -47,6 +47,7 @@ func TestNewDelivery(t *testing.T) {
 			assert.NotEmpty(t, d.Coordinates())
 
 			coords, err = valueobjects.NewCoordinates(tc.lat, tc.lon)
+
 			assert.NoError(t, err)
 
 			assert.Equal(t, tc.date.Format(time.RFC3339), d.Date().Format(time.RFC3339))
@@ -60,12 +61,13 @@ func TestNewDelivery(t *testing.T) {
 			assert.Empty(t, d.UpdatedAt())
 			assert.Empty(t, d.DeletedAt())
 
-			d = NewDeliveryFromDB(uuid.New(), uuid.New(), tc.date, tc.street, tc.number, tc.lat, tc.lon, tc.status, tc.createdAt, tc.updatedAt, tc.deletedAt)
+			d, err = NewDeliveryFromDB(uuid.New(), uuid.New(), tc.date, tc.street, tc.number, tc.lat, tc.lon, tc.status, tc.createdAt, tc.updatedAt, tc.deletedAt)
+
+			assert.NotEmpty(t, d.Coordinates())
 
 			assert.NotNil(t, d)
 			assert.NotNil(t, d.Id())
 			assert.NotNil(t, d.ContractId())
-			assert.NotEmpty(t, d.Coordinates())
 
 			status, err := ParseDeliveryStatus(tc.status)
 			assert.NoError(t, err)
@@ -128,17 +130,40 @@ func TestNewDelivery(t *testing.T) {
 				err := d.Update("", 10, valueobjects.Coordinates{})
 
 				assert.NotNil(t, err)
-
-				assert.ErrorContains(t, err, "delivered is not pending so you can't update it")
+				assert.ErrorIs(t, err, ErrNotPendingDelivery)
 
 				err = d.ChangeStatus(newStatus)
 
 				assert.NotNil(t, err)
-
-				expected := fmt.Sprintf("cannot change to that '%s' status", newStatus)
-				assert.ErrorContains(t, err, expected)
+				assert.ErrorIs(t, err, ErrCannotChangeDeliveryStatus)
 			}
 			c++
 		})
 	}
+}
+func TestNewDeliveryFromDB_Invalid(t *testing.T) {
+	id := uuid.New()
+	contractId := uuid.New()
+	date := time.Now().AddDate(0, 0, 5)
+	street := "New Street"
+	number := 30
+	lat := 91.0
+	lon := -181.9
+	status := "X"
+	createdAt := time.Now().AddDate(0, 6, 0)
+	updatedAt := time.Now().AddDate(0, 3, 0)
+
+	delivery, err := NewDeliveryFromDB(id, contractId, date, street, number, lat, lon, status, createdAt, updatedAt, nil)
+	assert.ErrorIs(t, err, valueobjects.ErrOutOfBoundariesLatitude)
+	assert.Nil(t, delivery)
+
+	lat = 42
+	delivery, err = NewDeliveryFromDB(id, contractId, date, street, number, lat, lon, status, createdAt, updatedAt, nil)
+	assert.ErrorIs(t, err, valueobjects.ErrOutOfBoundariesLongitude)
+	assert.Nil(t, delivery)
+
+	lon = -90.48
+	delivery, err = NewDeliveryFromDB(id, contractId, date, street, number, lat, lon, status, createdAt, updatedAt, nil)
+	assert.ErrorIs(t, err, ErrNotADeliveryStatus)
+	assert.Nil(t, delivery)
 }

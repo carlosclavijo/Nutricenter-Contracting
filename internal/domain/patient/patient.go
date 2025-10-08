@@ -1,6 +1,7 @@
 package patients
 
 import (
+	"fmt"
 	"github.com/carlosclavijo/Nutricenter-Contracting/internal/domain/abstractions"
 	vo "github.com/carlosclavijo/Nutricenter-Contracting/internal/domain/valueobjects"
 	"github.com/google/uuid"
@@ -87,12 +88,31 @@ func (p *Patient) Logged() {
 	p.lastLoginAt = time.Now()
 }
 
-func NewPatientFromDB(id uuid.UUID, firstName, lastName, email, password, gender string, birth time.Time, phone *string, lastLoginAt, createdAt, updatedAt time.Time, deletedAt *time.Time) *Patient {
-	emailVo, _ := vo.NewEmail(email)
-	passwordVo, _ := vo.NewPassword(password)
-	genderVo, _ := vo.ParseGender(gender)
-	birthVo, _ := vo.NewBirthDate(birth)
-	phoneVo, _ := vo.NewPhone(phone)
+func NewPatientFromDB(id uuid.UUID, firstName, lastName, email, password, gender string, birth time.Time, phone *string, lastLoginAt, createdAt, updatedAt time.Time, deletedAt *time.Time) (*Patient, error) {
+	emailVo, err := vo.NewEmail(email)
+	if err != nil {
+		return nil, fmt.Errorf("invalid email in DB: %w", err)
+	}
+
+	passwordVo, err := vo.NewHashedPassword(password)
+	if err != nil {
+		return nil, fmt.Errorf("invalid password in DB: %w", err)
+	}
+
+	genderVo, err := vo.ParseGender(gender)
+	if err != nil {
+		return nil, fmt.Errorf("invalid gender in DB: %w", err)
+	}
+
+	birthVo, err := vo.NewBirthDate(birth)
+	if err != nil {
+		return nil, fmt.Errorf("invalid birth in DB: %w", err)
+	}
+
+	phoneVo, err := vo.NewPhone(phone)
+	if err != nil {
+		return nil, fmt.Errorf("invalid phone number in DB: %w", err)
+	}
 
 	return &Patient{
 		AggregateRoot: abstractions.NewAggregateRoot(id),
@@ -107,5 +127,5 @@ func NewPatientFromDB(id uuid.UUID, firstName, lastName, email, password, gender
 		createdAt:     createdAt,
 		updatedAt:     updatedAt,
 		deletedAt:     deletedAt,
-	}
+	}, nil
 }

@@ -1,7 +1,6 @@
 package valueobjects
 
 import (
-	"fmt"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -45,7 +44,7 @@ func TestNewEmail(t *testing.T) {
 	}
 }
 
-func TestNewEmail_Invalid(t *testing.T) {
+func TestNewEmail_InvalidError(t *testing.T) {
 	cases := []struct {
 		name, email string
 	}{
@@ -69,15 +68,14 @@ func TestNewEmail_Invalid(t *testing.T) {
 			assert.NotNil(t, err)
 			assert.False(t, isValid)
 
-			expected := fmt.Sprintf("email '%s' is an invalid email", tc.email)
-			assert.ErrorContains(t, err, expected)
+			assert.ErrorIs(t, err, ErrInvalidEmail)
 
 			assert.Empty(t, email)
 		})
 	}
 }
 
-func TestNewEmail_Invalid_Long(t *testing.T) {
+func TestNewEmail_LongEmailError(t *testing.T) {
 	cases := []struct {
 		name, email string
 	}{
@@ -90,11 +88,11 @@ func TestNewEmail_Invalid_Long(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			email, err := NewEmail(tc.email)
 
-			assert.Empty(t, email)
 			assert.NotNil(t, err)
 
-			expected := fmt.Sprintf("email '%s' is too long ('%d'), max 200 characters", tc.email, len(tc.email))
-			assert.ErrorContains(t, err, expected)
+			assert.ErrorIs(t, err, ErrLongEmail)
+
+			assert.Empty(t, email)
 		})
 	}
 }

@@ -1,14 +1,19 @@
 package deliveries
 
-import "fmt"
+import (
+	"errors"
+	"fmt"
+)
 
 type DeliveryStatus string
 
 const (
-	Pending   DeliveryStatus = "P" // Pending
-	Delivered DeliveryStatus = "D" // Delivered
-	Cancelled DeliveryStatus = "C" // Cancelled
+	Pending   DeliveryStatus = "P"
+	Delivered DeliveryStatus = "D"
+	Cancelled DeliveryStatus = "C"
 )
+
+var ErrNotADeliveryStatus error = errors.New("not a delivery status")
 
 func (s DeliveryStatus) String() string {
 	switch s {
@@ -32,6 +37,6 @@ func ParseDeliveryStatus(s string) (DeliveryStatus, error) {
 	case "cancelled", "C":
 		return Cancelled, nil
 	default:
-		return "", fmt.Errorf("input '%s' is not a delivery status", s)
+		return "", fmt.Errorf("%w: got %s", ErrNotADeliveryStatus, s)
 	}
 }

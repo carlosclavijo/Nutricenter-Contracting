@@ -88,14 +88,21 @@ func (r *ContractRepository) GetAll(ctx context.Context) ([]*contracts.Contract,
 				return nil, fmt.Errorf("rows scan failed: %w", err)
 			}
 
-			d := deliveries.NewDeliveryFromDB(dId, id, date, street, number, latitude, longitude, status, createdAt, updatedAt, deletedAt)
+			d, err := deliveries.NewDeliveryFromDB(dId, id, date, street, number, latitude, longitude, status, createdAt, updatedAt, deletedAt)
+			if err != nil {
+				log.Printf("[repository:contract][GetAll] error concatenating delivery values from DB")
+				return nil, fmt.Errorf("%w: error concatenating delivery values from DB", err)
+			}
+
 			deliveryList = append(deliveryList, *d)
 		}
 
-		c := contracts.NewContractFromDb(
-			id, administratorId, patientId, contractType, contractStatus,
-			creation, start, end, cost, deliveryList, createdAt, updatedAt, deletedAt,
-		)
+		c, err := contracts.NewContractFromDb(id, administratorId, patientId, contractType, contractStatus, creation, start, end, cost, deliveryList, createdAt, updatedAt, deletedAt)
+		if err != nil {
+			log.Printf("[repository:contract][GetAll] error concatenating contract values from DB")
+			return nil, fmt.Errorf("%w: error concatenating contract values from DB", err)
+		}
+
 		cntrcts = append(cntrcts, c)
 	}
 
@@ -149,31 +156,37 @@ func (r *ContractRepository) GetById(ctx context.Context, id uuid.UUID) (*contra
 
 	rows, err := r.DB.QueryContext(ctx, query, id)
 	if err != nil {
-		log.Printf("[repository:contract][GetAll] error executing SQL statement for deliveries: %v", err)
+		log.Printf("[repository:contract][GetById] error executing SQL statement for deliveries: %v", err)
 		return nil, fmt.Errorf("query failed: %w", err)
 	}
 
 	defer func(rows *sql.Rows) {
 		if err = rows.Close(); err != nil {
-			log.Printf("[repository:contract][GetAll] error closing delivery rows: %v", err)
+			log.Printf("[repository:contract][GetById] error closing delivery rows: %v", err)
 			return
 		}
 	}(rows)
 	for rows.Next() {
 		err = rows.Scan(&dId, &date, &street, &number, &latitude, &longitude, &status, &dCreatedAt, &dUpdatedAt, &dDeletedAt)
 		if err != nil {
-			log.Printf("[repository:contract][GetAll] error scanning delivery rows: %v", err)
+			log.Printf("[repository:contract][GetById] error scanning delivery rows: %v", err)
 			return nil, fmt.Errorf("rows scan failed: %w", err)
 		}
 
-		d := deliveries.NewDeliveryFromDB(dId, id, date, street, number, latitude, longitude, status, createdAt, updatedAt, deletedAt)
+		d, err := deliveries.NewDeliveryFromDB(dId, id, date, street, number, latitude, longitude, status, createdAt, updatedAt, deletedAt)
+		if err != nil {
+			log.Printf("[repository:contract][GetById] error concatenating delivery values from DB")
+			return nil, fmt.Errorf("%w: error concatenating administrator values from DB", err)
+		}
+
 		deliveryList = append(deliveryList, *d)
 	}
 
-	c := contracts.NewContractFromDb(
-		id, administratorId, patientId, contractType, contractStatus,
-		creation, start, end, cost, deliveryList, createdAt, updatedAt, deletedAt,
-	)
+	c, err := contracts.NewContractFromDb(id, administratorId, patientId, contractType, contractStatus, creation, start, end, cost, deliveryList, createdAt, updatedAt, deletedAt)
+	if err != nil {
+		log.Printf("[repository:contract][GetById] error concatenating contract values from DB")
+		return nil, fmt.Errorf("%w: error concatenating contract values from DB", err)
+	}
 
 	if err = rows.Err(); err != nil {
 		log.Printf("[repository:contract][GetById] error scanning rows: %v", err)
@@ -221,14 +234,14 @@ func (r *ContractRepository) Create(ctx context.Context, c *contracts.Contract) 
 
 	var placeholders []string
 	var args []interface{}
-	for i, d := range d {
+	for i, dl := range d {
 		base := i * 7
 		placeholders = append(placeholders,
 			fmt.Sprintf("($%d,$%d,$%d,$%d,$%d, $%d, $%d)", base+1, base+2, base+3, base+4, base+5, base+6, base+7),
 		)
-		coordinates := d.Coordinates()
+		coordinates := dl.Coordinates()
 		args = append(args,
-			d.Id(), d.ContractId(), d.Date(), d.Street(), d.Number(), coordinates.Latitude(), coordinates.Longitude(),
+			dl.Id, dl.ContractId, dl.Date, dl.Street, dl.Number, coordinates.Latitude(), coordinates.Longitude(),
 		)
 	}
 
@@ -259,14 +272,21 @@ func (r *ContractRepository) Create(ctx context.Context, c *contracts.Contract) 
 			return nil, fmt.Errorf("scanning delivery failed: %w", err)
 		}
 
-		d := deliveries.NewDeliveryFromDB(dId, cId, date, street, number, latitude, longitude, status, createdAt, updatedAt, deletedAt)
-		insertedDeliveries = append(insertedDeliveries, *d)
+		delivery, err := deliveries.NewDeliveryFromDB(dId, cId, date, street, number, latitude, longitude, status, createdAt, updatedAt, deletedAt)
+		if err != nil {
+			log.Printf("[repository:contract][Create] error concatenating delivery values from DB")
+			return nil, fmt.Errorf("%w: error concatenating administrator values from DB", err)
+		}
+
+		insertedDeliveries = append(insertedDeliveries, *delivery)
 	}
 
-	var contract = contracts.NewContractFromDb(
-		id, administratorId, patientId, contractType, contractStatus,
-		creation, start, end, cost, insertedDeliveries, createdAt, updatedAt, deletedAt,
-	)
+	contract, err := contracts.NewContractFromDb(id, administratorId, patientId, contractType, contractStatus, creation, start, end, cost, insertedDeliveries, createdAt, updatedAt, deletedAt)
+	if err != nil {
+		log.Printf("[repository:contract][Create] error concatenating contract values from DB")
+		return nil, fmt.Errorf("%w: error concatenating contract values from DB", err)
+	}
+
 	return contract, nil
 }
 
@@ -297,10 +317,12 @@ func (r *ContractRepository) ChangeStatus(ctx context.Context, id uuid.UUID, sta
 		return nil, fmt.Errorf("scan failed: %w", err)
 	}
 
-	var contract = contracts.NewContractFromDb(
-		id, administratorId, patientId, contractType, contractStatus,
-		creation, start, end, cost, nil, createdAt, updatedAt, deletedAt,
-	)
+	contract, err := contracts.NewContractFromDb(id, administratorId, patientId, contractType, contractStatus, creation, start, end, cost, nil, createdAt, updatedAt, deletedAt)
+	if err != nil {
+		log.Printf("[repository:contract][ChangeStatus] error concatenating contract values from DB")
+		return nil, fmt.Errorf("%w: error concatenating contract values from DB", err)
+	}
+
 	return contract, nil
 }
 

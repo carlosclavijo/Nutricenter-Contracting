@@ -16,16 +16,16 @@ type AdministratorRepository struct {
 
 func (r *AdministratorRepository) GetAll(ctx context.Context) ([]*administrators.Administrator, error) {
 	var (
-		admins                                   []*administrators.Administrator
-		id                                       uuid.UUID
-		firstName, lastName, email, gender       string
-		lastLoginAt, createdAt, updatedAt, birth time.Time
-		deletedAt                                *time.Time
-		phone                                    *string
+		admins                                       []*administrators.Administrator
+		id                                           uuid.UUID
+		firstName, lastName, email, password, gender string
+		lastLoginAt, createdAt, updatedAt, birth     time.Time
+		deletedAt                                    *time.Time
+		phone                                        *string
 	)
 
 	query := `
-		SELECT id, first_name, last_name, email, gender, birth, phone, last_login_at, created_at, updated_at, deleted_at
+		SELECT id, first_name, last_name, email, password, gender, birth, phone, last_login_at, created_at, updated_at, deleted_at
 		FROM administrator
 	`
 	rows, err := r.Db.QueryContext(ctx, query)
@@ -42,13 +42,19 @@ func (r *AdministratorRepository) GetAll(ctx context.Context) ([]*administrators
 	}(rows)
 	for rows.Next() {
 		err = rows.Scan(
-			&id, &firstName, &lastName, &email, &gender, &birth, &phone, &lastLoginAt, &createdAt, &updatedAt, &deletedAt,
+			&id, &firstName, &lastName, &email, &password, &gender, &birth, &phone, &lastLoginAt, &createdAt, &updatedAt, &deletedAt,
 		)
 		if err != nil {
 			log.Printf("[repository:administrator][GetAll] error reading adminDTO for a slice of admins: %v", err)
 			return nil, fmt.Errorf("scan failed: %w", err)
 		}
-		admin := administrators.NewAdministratorFromDB(id, firstName, lastName, email, "restricted", gender, birth, phone, lastLoginAt, createdAt, updatedAt, deletedAt)
+
+		admin, err := administrators.NewAdministratorFromDB(id, firstName, lastName, email, password, gender, birth, phone, lastLoginAt, createdAt, updatedAt, deletedAt)
+		if err != nil {
+			log.Printf("[repository:adminstrator][GetAll] error concatenating administrator values from DB")
+			return nil, fmt.Errorf("%w: error concatenating administrator values from DB", err)
+		}
+
 		admins = append(admins, admin)
 	}
 
@@ -56,22 +62,23 @@ func (r *AdministratorRepository) GetAll(ctx context.Context) ([]*administrators
 		log.Printf("[repository:administrator][GetAll] error reading admins: %v", err)
 		return nil, fmt.Errorf("rows iteration error: %w", err)
 	}
+
 	log.Printf("[repository:administrator][GetAll] successfully fetched %d administrators", len(admins))
 	return admins, nil
 }
 
 func (r *AdministratorRepository) GetList(ctx context.Context) ([]*administrators.Administrator, error) {
 	var (
-		admins                                   []*administrators.Administrator
-		id                                       uuid.UUID
-		firstName, lastName, email, gender       string
-		lastLoginAt, createdAt, updatedAt, birth time.Time
-		deletedAt                                *time.Time
-		phone                                    *string
+		admins                                       []*administrators.Administrator
+		id                                           uuid.UUID
+		firstName, lastName, email, password, gender string
+		lastLoginAt, createdAt, updatedAt, birth     time.Time
+		deletedAt                                    *time.Time
+		phone                                        *string
 	)
 
 	query := `
-		SELECT id, first_name, last_name, email, gender, birth, phone, last_login_at, created_at, updated_at, deleted_at
+		SELECT id, first_name, last_name, email, password, gender, birth, phone, last_login_at, created_at, updated_at, deleted_at
 		FROM administrator
 		WHERE deleted_at IS NULL
 	`
@@ -90,14 +97,19 @@ func (r *AdministratorRepository) GetList(ctx context.Context) ([]*administrator
 
 	for rows.Next() {
 		err = rows.Scan(
-			&id, &firstName, &lastName, &email, &gender, &birth, &phone, &lastLoginAt, &createdAt, &updatedAt, &deletedAt,
+			&id, &firstName, &lastName, &email, &password, &gender, &birth, &phone, &lastLoginAt, &createdAt, &updatedAt, &deletedAt,
 		)
 		if err != nil {
 			log.Printf("[repository:administrator][GetList] error reading adminDTO for a slice of admins: %v", err)
 			return nil, fmt.Errorf("scan failed: %w", err)
 		}
 
-		admin := administrators.NewAdministratorFromDB(id, firstName, lastName, email, "restricted", gender, birth, phone, lastLoginAt, createdAt, updatedAt, deletedAt)
+		admin, err := administrators.NewAdministratorFromDB(id, firstName, lastName, email, password, gender, birth, phone, lastLoginAt, createdAt, updatedAt, deletedAt)
+		if err != nil {
+			log.Printf("[repository:adminstrator][GetList] error concatenating administrator values from DB")
+			return nil, fmt.Errorf("%w: error concatenating administrator values from DB", err)
+		}
+
 		admins = append(admins, admin)
 	}
 
@@ -112,29 +124,33 @@ func (r *AdministratorRepository) GetList(ctx context.Context) ([]*administrator
 
 func (r *AdministratorRepository) GetById(ctx context.Context, id uuid.UUID) (*administrators.Administrator, error) {
 	var (
-		firstName, lastName, email, gender       string
-		lastLoginAt, createdAt, updatedAt, birth time.Time
-		deletedAt                                *time.Time
-		phone                                    *string
+		firstName, lastName, email, password, gender string
+		lastLoginAt, createdAt, updatedAt, birth     time.Time
+		deletedAt                                    *time.Time
+		phone                                        *string
 	)
 
 	query := `
-		SELECT first_name, last_name, email, gender, birth, phone, last_login_at, created_at, updated_at, deleted_at
+		SELECT first_name, last_name, email, password, gender, birth, phone, last_login_at, created_at, updated_at, deleted_at
 		FROM administrator
 		WHERE id = $1
 	`
 	err := r.Db.QueryRowContext(ctx, query, id).Scan(
-		&firstName, &lastName, &email, &gender, &birth, &phone, &lastLoginAt, &createdAt, &updatedAt, &deletedAt,
+		&firstName, &lastName, &email, &password, &gender, &birth, &phone, &lastLoginAt, &createdAt, &updatedAt, &deletedAt,
 	)
 	if err != nil {
 		log.Printf("[repository:administrator][GetById] error executing SQL query '%s': %v", query, err)
 		return nil, fmt.Errorf("query failed: %w", err)
 	}
 
-	log.Println(gender)
-	admin := *administrators.NewAdministratorFromDB(id, firstName, lastName, email, "restricted", gender, birth, phone, lastLoginAt, createdAt, updatedAt, deletedAt)
+	admin, err := administrators.NewAdministratorFromDB(id, firstName, lastName, email, password, gender, birth, phone, lastLoginAt, createdAt, updatedAt, deletedAt)
+	if err != nil {
+		log.Printf("[repository:adminstrator][GetById] error concatenating administrator values from DB")
+		return nil, fmt.Errorf("%w: error concatenating administrator values from DB", err)
+	}
+
 	log.Printf("[repository:administrator][GetById] successfully fetched administrator")
-	return &admin, nil
+	return admin, nil
 }
 
 func (r *AdministratorRepository) GetByEmail(ctx context.Context, email string) (*administrators.Administrator, error) {
@@ -160,7 +176,12 @@ func (r *AdministratorRepository) GetByEmail(ctx context.Context, email string) 
 		return nil, fmt.Errorf("query failed: %w", err)
 	}
 
-	admin := administrators.NewAdministratorFromDB(id, firstName, lastName, email, password, gender, birth, phone, lastLoginAt, createdAt, updatedAt, deletedAt)
+	admin, err := administrators.NewAdministratorFromDB(id, firstName, lastName, email, password, gender, birth, phone, lastLoginAt, createdAt, updatedAt, deletedAt)
+	if err != nil {
+		log.Printf("[repository:adminstrator][GetByEmail] error concatenating administrator values from DB")
+		return nil, fmt.Errorf("%w: error concatenating administrator values from DB", err)
+	}
+
 	log.Printf("[repository:administrator][GetByEmail] successfully fetched administrator")
 	return admin, nil
 }
@@ -211,11 +232,11 @@ func (r *AdministratorRepository) ExistByEmail(ctx context.Context, email string
 
 func (r *AdministratorRepository) Create(ctx context.Context, adm *administrators.Administrator) (*administrators.Administrator, error) {
 	var (
-		id                                       uuid.UUID
-		firstName, lastName, email, gender       string
-		lastLoginAt, createdAt, updatedAt, birth time.Time
-		deletedAt                                *time.Time
-		phone, phoneVal                          *string
+		id                                           uuid.UUID
+		firstName, lastName, email, password, gender string
+		lastLoginAt, createdAt, updatedAt, birth     time.Time
+		deletedAt                                    *time.Time
+		phone, phoneVal                              *string
 	)
 
 	if adm.Phone() != nil {
@@ -226,12 +247,12 @@ func (r *AdministratorRepository) Create(ctx context.Context, adm *administrator
 	query := `
 		INSERT INTO administrator(id, first_name, last_name, email, password, gender, birth, phone)
 		VALUES($1, $2, $3, $4, $5, $6, $7, $8)
-		RETURNING id, first_name, last_name, email, gender, birth, phone, last_login_at, created_at, updated_at, deleted_at
+		RETURNING id, first_name, last_name, email, password, gender, birth, phone, last_login_at, created_at, updated_at, deleted_at
 	`
 	err := r.Db.QueryRowContext(
-		ctx, query, adm.Id(), adm.FirstName(), adm.LastName(), adm.Email().Value(), adm.Password().String(), adm.Gender(), adm.Birth(), phoneVal,
+		ctx, query, adm.Id, adm.FirstName, adm.LastName, adm.Email().Value(), adm.Password().String(), adm.Gender, adm.Birth, phoneVal,
 	).Scan(
-		&id, &firstName, &lastName, &email, &gender, &birth, &phone, &lastLoginAt, &createdAt, &updatedAt, &deletedAt,
+		&id, &firstName, &lastName, &email, &password, &gender, &birth, &phone, &lastLoginAt, &createdAt, &updatedAt, &deletedAt,
 	)
 
 	if err != nil {
@@ -239,18 +260,23 @@ func (r *AdministratorRepository) Create(ctx context.Context, adm *administrator
 		return nil, fmt.Errorf("scan failed: %w", err)
 	}
 
-	admin := administrators.NewAdministratorFromDB(id, firstName, lastName, email, "", gender, birth, phone, lastLoginAt, createdAt, updatedAt, deletedAt)
+	admin, err := administrators.NewAdministratorFromDB(id, firstName, lastName, email, password, gender, birth, phone, lastLoginAt, createdAt, updatedAt, deletedAt)
+	if err != nil {
+		log.Printf("[repository:adminstrator][Create] error concatenating administrator values from DB")
+		return nil, fmt.Errorf("%w: error concatenating administrator values from DB", err)
+	}
+
 	log.Printf("[repository:administrator][Create] successfully created administrator in DB %v", admin)
 	return admin, nil
 }
 
 func (r *AdministratorRepository) Update(ctx context.Context, adm *administrators.Administrator) (*administrators.Administrator, error) {
 	var (
-		id                                       uuid.UUID
-		firstName, lastName, email, gender       string
-		phone                                    *string
-		lastLoginAt, createdAt, updatedAt, birth time.Time
-		deletedAt                                *time.Time
+		id                                           uuid.UUID
+		firstName, lastName, email, password, gender string
+		phone                                        *string
+		lastLoginAt, createdAt, updatedAt, birth     time.Time
+		deletedAt                                    *time.Time
 	)
 
 	if adm.Phone() != nil {
@@ -261,13 +287,13 @@ func (r *AdministratorRepository) Update(ctx context.Context, adm *administrator
         UPDATE administrator
         SET first_name = $1, last_name = $2, email = $3, password = $4, gender = $5, birth = $6, phone = $7, last_login_at = $8, updated_at = $9 
         WHERE id = $10
-        RETURNING id, first_name, last_name, email, gender, birth, phone, last_login_at, created_at, updated_at, deleted_at
+        RETURNING id, first_name, last_name, email, password, gender, birth, phone, last_login_at, created_at, updated_at, deleted_at
     `
 
 	err := r.Db.QueryRowContext(
-		ctx, query, adm.FirstName(), adm.LastName(), adm.Email().Value(), adm.Password().String(), adm.Gender(), birth, phone, adm.LastLoginAt, adm.UpdatedAt, adm.Id(),
+		ctx, query, adm.FirstName, adm.LastName, adm.Email().Value(), adm.Password().String(), adm.Gender, birth, phone, adm.LastLoginAt, adm.UpdatedAt, adm.Id,
 	).Scan(
-		&id, &firstName, &lastName, &email, &gender, &birth, &phone, &lastLoginAt, &createdAt, &updatedAt, &deletedAt,
+		&id, &firstName, &lastName, &email, &password, &gender, &birth, &phone, &lastLoginAt, &createdAt, &updatedAt, &deletedAt,
 	)
 
 	if err != nil {
@@ -275,29 +301,32 @@ func (r *AdministratorRepository) Update(ctx context.Context, adm *administrator
 		return nil, fmt.Errorf("scan failed: %w", err)
 	}
 
-	updatedAdmin := administrators.NewAdministratorFromDB(
-		id, firstName, lastName, email, adm.Password().String(), gender, birth, phone, lastLoginAt, createdAt, updatedAt, deletedAt,
-	)
+	admin, err := administrators.NewAdministratorFromDB(id, firstName, lastName, email, adm.Password().String(), gender, birth, phone, lastLoginAt, createdAt, updatedAt, deletedAt)
+	if err != nil {
+		log.Printf("[repository:adminstrator][Update] error concatenating administrator values from DB")
+		return nil, fmt.Errorf("%w: error concatenating administrator values from DB", err)
+	}
 
-	return updatedAdmin, nil
+	log.Printf("[repository:administrator][Update] successfully update administrator %v", admin)
+	return admin, nil
 }
 
 func (r *AdministratorRepository) Delete(ctx context.Context, id uuid.UUID) (*administrators.Administrator, error) {
 	var (
-		firstName, lastName, email, gender       string
-		lastLoginAt, createdAt, updatedAt, birth time.Time
-		deletedAt                                *time.Time
-		phone                                    *string
+		firstName, lastName, email, password, gender string
+		lastLoginAt, createdAt, updatedAt, birth     time.Time
+		deletedAt                                    *time.Time
+		phone                                        *string
 	)
 
 	query := `
 		UPDATE administrator
 		SET deleted_at = NOW() 
 		WHERE id = $1 
-		RETURNING first_name, last_name, email, gender, birth, phone, last_login_at, created_at, updated_at, deleted_at
+		RETURNING first_name, last_name, email, password, gender, birth, phone, last_login_at, created_at, updated_at, deleted_at
 	`
 	err := r.Db.QueryRowContext(ctx, query, id).Scan(
-		&firstName, &lastName, &email, &gender, &birth, &phone, &lastLoginAt, &createdAt, &updatedAt, &deletedAt,
+		&firstName, &lastName, &email, &password, &gender, &birth, &phone, &lastLoginAt, &createdAt, &updatedAt, &deletedAt,
 	)
 
 	if err != nil {
@@ -305,37 +334,45 @@ func (r *AdministratorRepository) Delete(ctx context.Context, id uuid.UUID) (*ad
 		return nil, err
 	}
 
-	admin := administrators.NewAdministratorFromDB(id, firstName, lastName, email, "", gender, birth, phone, lastLoginAt, createdAt, updatedAt, deletedAt)
-	log.Printf("[repository:administrator][Delete] successfully soft deleted administrator %v", admin)
+	admin, err := administrators.NewAdministratorFromDB(id, firstName, lastName, email, password, gender, birth, phone, lastLoginAt, createdAt, updatedAt, deletedAt)
+	if err != nil {
+		log.Printf("[repository:adminstrator][Delete] error concatenating administrator values from DB")
+		return nil, fmt.Errorf("%w: error concatenating administrator values from DB", err)
+	}
+
+	log.Printf("[repository:administrator][Delete] successfully deleted administrator %v", admin)
 	return admin, nil
 }
 
 func (r *AdministratorRepository) Restore(ctx context.Context, id uuid.UUID) (*administrators.Administrator, error) {
 	var (
-		idNew                                    uuid.UUID
-		firstName, lastName, email, gender       string
-		lastLoginAt, createdAt, updatedAt, birth time.Time
-		deletedAt                                *time.Time
-		phone                                    *string
+		idNew                                        uuid.UUID
+		firstName, lastName, email, password, gender string
+		lastLoginAt, createdAt, updatedAt, birth     time.Time
+		deletedAt                                    *time.Time
+		phone                                        *string
 	)
 
 	query := `
 		UPDATE administrator
 		SET deleted_at = NULL
 		WHERE id = $1
-		RETURNING id, first_name, last_name, email, gender, birth, phone, last_login_at, created_at, updated_at, deleted_at
+		RETURNING id, first_name, last_name, email, password, gender, birth, phone, last_login_at, created_at, updated_at, deleted_at
 	`
-	err := r.Db.QueryRowContext(ctx, query, id).Scan(
-		&idNew, &firstName, &lastName, &email, &gender, &birth, &phone, &lastLoginAt, &createdAt, &updatedAt, &deletedAt,
-	)
+	err := r.Db.QueryRowContext(ctx, query, id).Scan(&idNew, &firstName, &lastName, &email, &password, &gender, &birth, &phone, &lastLoginAt, &createdAt, &updatedAt, &deletedAt)
 
 	if err != nil {
 		log.Printf("[repository:administrator][Restore] error executing SQL query '%s': %v", query, err)
 		return nil, err
 	}
 
-	admin := administrators.NewAdministratorFromDB(id, firstName, lastName, email, "", gender, birth, phone, lastLoginAt, createdAt, updatedAt, deletedAt)
-	log.Printf("[repository:administrator][Delete] successfully restore administrator %v", admin)
+	admin, err := administrators.NewAdministratorFromDB(id, firstName, lastName, email, password, gender, birth, phone, lastLoginAt, createdAt, updatedAt, deletedAt)
+	if err != nil {
+		log.Printf("[repository:adminstrator][Restore] error concatenating administrator values from DB")
+		return nil, fmt.Errorf("%w: error concatenating administrator values from DB", err)
+	}
+
+	log.Printf("[repository:administrator][Restore] successfully restore administrator %v", admin)
 	return admin, nil
 }
 

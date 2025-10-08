@@ -1,6 +1,7 @@
 package valueobjects
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"unicode"
@@ -10,18 +11,24 @@ type Phone struct {
 	value *string
 }
 
+var (
+	ErrNotNumericPhoneNumber = errors.New("phone number isn't entirely numeric")
+	ErrShortPhoneNumber      = errors.New("phone number is too short, minimum size is 8")
+	ErrLongPhoneNumber       = errors.New("phone nunmber is too long, maximum size is 10")
+)
+
 func NewPhone(v *string) (*Phone, error) {
 	if v == nil || *v == "" {
 		return nil, nil
 	} else if !isNumeric(*v) {
 		log.Printf("[valueobject:phone] phone value isn't entirely numeric")
-		return nil, fmt.Errorf("phone number '%s' isn't entirely numeric", *v)
+		return nil, fmt.Errorf("%w: got %s", ErrNotNumericPhoneNumber, *v)
 	} else if len(*v) < 8 {
 		log.Printf("[valueobject:phone] phone number too short")
-		return nil, fmt.Errorf("phone number '%s' is too short('%d'), minimum length is 8", *v, len(*v))
+		return nil, fmt.Errorf("%w: got %s, size %d", ErrShortPhoneNumber, *v, len(*v))
 	} else if len(*v) > 10 {
 		log.Printf("[valueobject:phone] phone value too long")
-		return nil, fmt.Errorf("phone number '%s' is too long('%d'), maximum length is 10", *v, len(*v))
+		return nil, fmt.Errorf("%w, got %s, size %d", ErrLongPhoneNumber, *v, len(*v))
 	}
 	return &Phone{value: v}, nil
 }

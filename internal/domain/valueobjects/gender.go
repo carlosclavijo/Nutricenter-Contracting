@@ -1,8 +1,13 @@
 package valueobjects
 
-import "fmt"
+import (
+	"errors"
+	"fmt"
+)
 
 type Gender string
+
+var ErrNotAGender error = errors.New("is not a gender")
 
 const (
 	Undefined Gender = "U" // Undefined
@@ -32,6 +37,6 @@ func ParseGender(s string) (Gender, error) {
 	case "female", "F":
 		return Female, nil
 	default:
-		return "", fmt.Errorf("input '%s' is not a gender", s)
+		return "", fmt.Errorf("%w: got %s", ErrNotAGender, s)
 	}
 }

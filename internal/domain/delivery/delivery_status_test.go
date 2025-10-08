@@ -1,7 +1,6 @@
 package deliveries
 
 import (
-	"fmt"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -12,6 +11,8 @@ func TestDeliveryStatus(t *testing.T) {
 	cancelled := Cancelled
 	unknown, err := ParseDeliveryStatus("X")
 
+	assert.NotNil(t, err)
+
 	assert.Equal(t, "pending", pending.String())
 	assert.Equal(t, "delivered", delivered.String())
 	assert.Equal(t, "cancelled", cancelled.String())
@@ -21,35 +22,31 @@ func TestDeliveryStatus(t *testing.T) {
 	assert.Equal(t, Cancelled, cancelled)
 	assert.NotEqual(t, DeliveryStatus(""), unknown.String())
 
-	expected := fmt.Sprintf("input '%s' is not a delivery status", "X")
-	assert.NotNil(t, err)
-	assert.ErrorContains(t, err, expected)
-
 	ds, err := ParseDeliveryStatus("pending")
-	assert.NoError(t, err)
 	assert.Equal(t, Pending, ds)
+	assert.NoError(t, err)
 
 	ds, err = ParseDeliveryStatus("P")
-	assert.NoError(t, err)
 	assert.Equal(t, Pending, ds)
+	assert.NoError(t, err)
 
 	ds, err = ParseDeliveryStatus("delivered")
-	assert.NoError(t, err)
 	assert.Equal(t, Delivered, ds)
+	assert.NoError(t, err)
 
 	ds, err = ParseDeliveryStatus("D")
-	assert.NoError(t, err)
 	assert.Equal(t, Delivered, ds)
+	assert.NoError(t, err)
 
 	ds, err = ParseDeliveryStatus("cancelled")
-	assert.NoError(t, err)
 	assert.Equal(t, Cancelled, ds)
+	assert.NoError(t, err)
 
 	ds, err = ParseDeliveryStatus("C")
-	assert.NoError(t, err)
 	assert.Equal(t, Cancelled, ds)
+	assert.NoError(t, err)
 
 	ds, err = ParseDeliveryStatus("invalid")
 	assert.Equal(t, DeliveryStatus(""), ds)
-	assert.Error(t, err)
+	assert.ErrorIs(t, err, ErrNotADeliveryStatus)
 }

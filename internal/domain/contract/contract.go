@@ -25,44 +25,6 @@ type Contract struct {
 	deletedAt       *time.Time
 }
 
-func NewContract(administratorId uuid.UUID, patientId uuid.UUID, contractType ContractType, start time.Time, costValue int, street string, number int, coordinates valueobjects.Coordinates) *Contract {
-	id := uuid.New()
-	var endDate time.Time
-	if contractType == HalfMonth {
-		endDate = start.AddDate(0, 0, 14)
-	} else if contractType == Monthly {
-		endDate = start.AddDate(0, 0, 29)
-	}
-	return &Contract{
-		AggregateRoot:   abstractions.NewAggregateRoot(id),
-		administratorId: administratorId,
-		patientId:       patientId,
-		contractType:    contractType,
-		contractStatus:  Created,
-		creationDate:    time.Now(),
-		startDate:       start,
-		endDate:         endDate,
-		costValue:       costValue,
-		deliveries:      createCalendar(contractType, id, start, street, number, coordinates),
-	}
-}
-
-func createCalendar(typ ContractType, contractId uuid.UUID, date time.Time, street string, number int, coordinates valueobjects.Coordinates) []deliveries.Delivery {
-	var days []deliveries.Delivery
-	if typ == HalfMonth {
-		for i := 0; i < 15; i++ {
-			d := deliveries.NewDelivery(contractId, date.AddDate(0, 0, 0+i), street, number, coordinates)
-			days = append(days, *d)
-		}
-	} else if typ == Monthly {
-		for i := 0; i < 30; i++ {
-			d := deliveries.NewDelivery(contractId, date.AddDate(0, 0, 0+i), street, number, coordinates)
-			days = append(days, *d)
-		}
-	}
-	return days
-}
-
 func (c *Contract) Active() error {
 	if c.contractStatus != Created {
 		return fmt.Errorf("only Created contracts can convert to Active")
@@ -131,9 +93,54 @@ func (c *Contract) DeletedAt() *time.Time {
 	return c.deletedAt
 }
 
-func NewContractFromDb(id, aId, pId uuid.UUID, cType, cStatus string, cDate, sDate, eDate time.Time, cost int, d []deliveries.Delivery, cAt, uAt time.Time, dAt *time.Time) *Contract {
-	contractType, _ := ParseContractType(cType)
-	contractStatus, _ := ParseContractStatus(cStatus)
+func NewContract(administratorId uuid.UUID, patientId uuid.UUID, contractType ContractType, start time.Time, costValue int, street string, number int, coordinates valueobjects.Coordinates) *Contract {
+	id := uuid.New()
+	var endDate time.Time
+	if contractType == HalfMonth {
+		endDate = start.AddDate(0, 0, 14)
+	} else if contractType == Monthly {
+		endDate = start.AddDate(0, 0, 29)
+	}
+	return &Contract{
+		AggregateRoot:   abstractions.NewAggregateRoot(id),
+		administratorId: administratorId,
+		patientId:       patientId,
+		contractType:    contractType,
+		contractStatus:  Created,
+		creationDate:    time.Now(),
+		startDate:       start,
+		endDate:         endDate,
+		costValue:       costValue,
+		deliveries:      createCalendar(contractType, id, start, street, number, coordinates),
+	}
+}
+
+func createCalendar(typ ContractType, contractId uuid.UUID, date time.Time, street string, number int, coordinates valueobjects.Coordinates) []deliveries.Delivery {
+	var days []deliveries.Delivery
+	if typ == HalfMonth {
+		for i := 0; i < 15; i++ {
+			d := deliveries.NewDelivery(contractId, date.AddDate(0, 0, 0+i), street, number, coordinates)
+			days = append(days, *d)
+		}
+	} else if typ == Monthly {
+		for i := 0; i < 30; i++ {
+			d := deliveries.NewDelivery(contractId, date.AddDate(0, 0, 0+i), street, number, coordinates)
+			days = append(days, *d)
+		}
+	}
+	return days
+}
+
+func NewContractFromDb(id, aId, pId uuid.UUID, cType, cStatus string, cDate, sDate, eDate time.Time, cost int, d []deliveries.Delivery, cAt, uAt time.Time, dAt *time.Time) (*Contract, error) {
+	contractType, err := ParseContractType(cType)
+	if err != nil {
+		return nil, fmt.Errorf("invalid contract type in DB: %w", err)
+	}
+
+	contractStatus, err := ParseContractStatus(cStatus)
+	if err != nil {
+		return nil, fmt.Errorf("invalid contract status in DB: %w", err)
+	}
 
 	return &Contract{
 		AggregateRoot:   abstractions.NewAggregateRoot(id),
@@ -149,5 +156,5 @@ func NewContractFromDb(id, aId, pId uuid.UUID, cType, cStatus string, cDate, sDa
 		createdAt:       cAt,
 		updatedAt:       uAt,
 		deletedAt:       dAt,
-	}
+	}, nil
 }

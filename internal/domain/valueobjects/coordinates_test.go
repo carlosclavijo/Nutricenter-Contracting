@@ -1,7 +1,6 @@
 package valueobjects
 
 import (
-	"fmt"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -36,7 +35,7 @@ func TestNewCoordinates(t *testing.T) {
 	}
 }
 
-func TestNewCoordinates_InValid_Latitude(t *testing.T) {
+func TestNewCoordinates_LatitudeError(t *testing.T) {
 	cases := []struct {
 		name     string
 		lat, lon float64
@@ -52,15 +51,14 @@ func TestNewCoordinates_InValid_Latitude(t *testing.T) {
 
 			assert.NotNil(t, err)
 
-			expected := fmt.Sprintf("latitude '%.2f' must been between -90 and 90", tc.lat)
-			assert.ErrorContains(t, err, expected)
+			assert.ErrorIs(t, err, ErrOutOfBoundariesLatitude)
 
 			assert.Empty(t, coords)
 		})
 	}
 }
 
-func TestNewCoordinates_InValid_Longitude(t *testing.T) {
+func TestNewCoordinates_LongitudeError(t *testing.T) {
 	cases := []struct {
 		name     string
 		lat, lon float64
@@ -76,8 +74,7 @@ func TestNewCoordinates_InValid_Longitude(t *testing.T) {
 
 			assert.NotNil(t, err)
 
-			expected := fmt.Sprintf("longitude '%.2f' must been between -180 and 180", tc.lon)
-			assert.ErrorContains(t, err, expected)
+			assert.ErrorIs(t, err, ErrOutOfBoundariesLongitude)
 
 			assert.Empty(t, coords)
 		})

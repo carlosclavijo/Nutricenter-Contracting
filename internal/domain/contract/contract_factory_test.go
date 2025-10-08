@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-func TestNewContractFactory_Valid(t *testing.T) {
+func TestNewContractFactory(t *testing.T) {
 	factory := NewContractFactory()
 
 	assert.Empty(t, factory)
@@ -68,7 +68,7 @@ func TestNewContractFactory_Valid(t *testing.T) {
 			assert.Equal(t, patientId, contract.PatientId())
 			assert.Equal(t, ctype, contract.ContractType())
 			assert.Contains(t, []string{"monthly", "half-month"}, contract.ContractType().String())
-			assert.Equal(t, tc.start.Format("2006-01-02"), contract.StartDate().Format("2006-01-02"))
+			assert.Equal(t, tc.start.Format(time.RFC3339), contract.StartDate().Format(time.RFC3339))
 			assert.Equal(t, tc.cost, contract.CostValue())
 			assert.Equal(t, Created, contract.ContractStatus())
 			assert.WithinDuration(t, time.Now(), contract.CreationDate(), time.Second)
@@ -94,7 +94,7 @@ func TestNewContractFactory_Valid(t *testing.T) {
 				assert.NotNil(t, d[i].ContractId())
 
 				assert.Equal(t, contract.Id(), d[i].ContractId())
-				assert.Equal(t, expectedDate.Format("2006-01-02"), actualDate.Format("2006-01-02"))
+				assert.Equal(t, expectedDate.Format(time.RFC3339), actualDate.Format(time.RFC3339))
 				assert.Equal(t, tc.street, d[i].Street())
 				assert.Equal(t, tc.number, d[i].Number())
 
@@ -124,7 +124,7 @@ func TestNewContractFactory_Valid(t *testing.T) {
 	}
 }
 
-func TestNewContractFactory_Invalid(t *testing.T) {
+func TestNewContractFactory_Errors(t *testing.T) {
 	factory := NewContractFactory()
 
 	administratorId := uuid.Nil

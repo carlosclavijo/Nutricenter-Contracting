@@ -17,12 +17,14 @@ func (h *AdministratorHandler) HandleCreate(ctx context.Context, cmd commands.Cr
 		return nil, err
 	}
 
-	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(cmd.Password), bcrypt.DefaultCost)
-	password, err := valueobjects.NewPassword(string(hashedPassword))
+	password, err := valueobjects.NewPassword(cmd.Password)
 	if err != nil {
 		log.Printf("[handler:administrator][HandleCreate] Error creating password object: %v", err)
 		return nil, err
 	}
+
+	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(cmd.Password), bcrypt.DefaultCost)
+	password, _ = valueobjects.NewHashedPassword(string(hashedPassword))
 
 	gender, err := valueobjects.ParseGender(cmd.Gender)
 	if err != nil {

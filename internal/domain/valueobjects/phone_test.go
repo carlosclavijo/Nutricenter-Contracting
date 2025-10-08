@@ -1,7 +1,6 @@
 package valueobjects
 
 import (
-	"fmt"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -25,34 +24,34 @@ func TestNewPhone(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			phone, err := NewPhone(&tc.phone)
-			isNumeric := isNumeric(tc.phone)
+			numeric := isNumeric(tc.phone)
 
 			assert.NotEmpty(t, phone)
-			assert.Nil(t, err)
 			assert.NoError(t, err)
 
 			assert.Equal(t, *phone.String(), tc.phone)
-			assert.True(t, isNumeric)
+			assert.True(t, numeric)
+
+			assert.Nil(t, err)
 		})
 	}
 }
 
-func TestNewPhone_Nil(t *testing.T) {
+func TestNewPhone_Empty(t *testing.T) {
 	phone, err := NewPhone(nil)
 	phoneStr := ""
 	phone2, err2 := NewPhone(&phoneStr)
 
-	assert.Empty(t, phone)
-	assert.Empty(t, phone2)
-
-	assert.Nil(t, err)
-	assert.Nil(t, err2)
-
 	assert.NoError(t, err)
 	assert.NoError(t, err2)
+
+	assert.Empty(t, phone)
+	assert.Empty(t, phone2)
+	assert.Nil(t, err)
+	assert.Nil(t, err2)
 }
 
-func TestNewPhone_Invalid_IsNotNumeric(t *testing.T) {
+func TestNewPhone_NotNumericError(t *testing.T) {
 	cases := []struct {
 		name, phone string
 	}{
@@ -71,19 +70,20 @@ func TestNewPhone_Invalid_IsNotNumeric(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			phone, err := NewPhone(&tc.phone)
-			isNumeric := isNumeric(tc.phone)
+			numeric := isNumeric(tc.phone)
 
-			assert.Nil(t, phone)
 			assert.NotNil(t, err)
 
-			expected := fmt.Sprintf("phone number '%s' isn't entirely numeric", tc.phone)
-			assert.ErrorContains(t, err, expected)
-			assert.False(t, isNumeric)
+			assert.ErrorIs(t, err, ErrNotNumericPhoneNumber)
+			assert.False(t, numeric)
+
+			assert.Nil(t, phone)
+
 		})
 	}
 }
 
-func TestNewPhone_Invalid_Short(t *testing.T) {
+func TestNewPhone_ShortError(t *testing.T) {
 	cases := []struct {
 		name, phone string
 	}{
@@ -103,16 +103,16 @@ func TestNewPhone_Invalid_Short(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			phone, err := NewPhone(&tc.phone)
 
-			assert.Nil(t, phone)
 			assert.NotNil(t, err)
 
-			expected := fmt.Sprintf("phone number '%s' is too short('%d'), minimum length is 8", tc.phone, len(tc.phone))
-			assert.ErrorContains(t, err, expected)
+			assert.ErrorIs(t, err, ErrShortPhoneNumber)
+
+			assert.Nil(t, phone)
 		})
 	}
 }
 
-func TestNewPhone_Invalid_Long(t *testing.T) {
+func TestNewPhone_LongError(t *testing.T) {
 	cases := []struct {
 		name, phone string
 	}{
@@ -132,11 +132,11 @@ func TestNewPhone_Invalid_Long(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			phone, err := NewPhone(&tc.phone)
 
-			assert.Nil(t, phone)
 			assert.NotNil(t, err)
 
-			expected := fmt.Sprintf("phone number '%s' is too long('%d'), maximum length is 10", tc.phone, len(tc.phone))
-			assert.ErrorContains(t, err, expected)
+			assert.ErrorIs(t, err, ErrLongPhoneNumber)
+
+			assert.Nil(t, phone)
 		})
 	}
 }

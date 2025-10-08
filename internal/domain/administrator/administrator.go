@@ -1,6 +1,7 @@
 package administrators
 
 import (
+	"fmt"
 	"github.com/carlosclavijo/Nutricenter-Contracting/internal/domain/abstractions"
 	vo "github.com/carlosclavijo/Nutricenter-Contracting/internal/domain/valueobjects"
 	"github.com/google/uuid"
@@ -20,19 +21,6 @@ type Administrator struct {
 	createdAt   time.Time
 	updatedAt   time.Time
 	deletedAt   *time.Time
-}
-
-func NewAdministrator(firstName, lastName string, email vo.Email, password vo.Password, gender vo.Gender, birth vo.BirthDate, phone *vo.Phone) *Administrator {
-	return &Administrator{
-		AggregateRoot: abstractions.NewAggregateRoot(uuid.New()),
-		firstName:     firstName,
-		lastName:      lastName,
-		email:         email,
-		password:      password,
-		gender:        gender,
-		birth:         birth,
-		phone:         phone,
-	}
 }
 
 func (a *Administrator) Id() uuid.UUID {
@@ -87,12 +75,44 @@ func (a *Administrator) Logged() {
 	a.lastLoginAt = time.Now()
 }
 
-func NewAdministratorFromDB(id uuid.UUID, firstName string, lastName string, email string, password string, gender string, birth time.Time, phone *string, lastLoginAt time.Time, createdAt time.Time, updatedAt time.Time, deletedAt *time.Time) *Administrator {
-	emailVo, _ := vo.NewEmail(email)
-	passwordVo, _ := vo.NewPassword(password)
-	genderVo, _ := vo.ParseGender(gender)
-	birthVo, _ := vo.NewBirthDate(birth)
-	phoneVo, _ := vo.NewPhone(phone)
+func NewAdministrator(firstName, lastName string, email vo.Email, password vo.Password, gender vo.Gender, birth vo.BirthDate, phone *vo.Phone) *Administrator {
+	return &Administrator{
+		AggregateRoot: abstractions.NewAggregateRoot(uuid.New()),
+		firstName:     firstName,
+		lastName:      lastName,
+		email:         email,
+		password:      password,
+		gender:        gender,
+		birth:         birth,
+		phone:         phone,
+	}
+}
+
+func NewAdministratorFromDB(id uuid.UUID, firstName string, lastName string, email string, password string, gender string, birth time.Time, phone *string, lastLoginAt time.Time, createdAt time.Time, updatedAt time.Time, deletedAt *time.Time) (*Administrator, error) {
+	emailVo, err := vo.NewEmail(email)
+	if err != nil {
+		return nil, fmt.Errorf("invalid email in DB: %w", err)
+	}
+
+	passwordVo, err := vo.NewHashedPassword(password)
+	if err != nil {
+		return nil, fmt.Errorf("invalid password in DB: %w", err)
+	}
+
+	genderVo, err := vo.ParseGender(gender)
+	if err != nil {
+		return nil, fmt.Errorf("invalid gender in DB: %w", err)
+	}
+
+	birthVo, err := vo.NewBirthDate(birth)
+	if err != nil {
+		return nil, fmt.Errorf("invalid birth in DB: %w", err)
+	}
+
+	phoneVo, err := vo.NewPhone(phone)
+	if err != nil {
+		return nil, fmt.Errorf("invalid phone number in DB: %w", err)
+	}
 
 	return &Administrator{
 		AggregateRoot: abstractions.NewAggregateRoot(id),
@@ -107,5 +127,5 @@ func NewAdministratorFromDB(id uuid.UUID, firstName string, lastName string, ema
 		createdAt:     createdAt,
 		updatedAt:     updatedAt,
 		deletedAt:     deletedAt,
-	}
+	}, nil
 }
