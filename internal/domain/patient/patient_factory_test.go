@@ -1,7 +1,6 @@
 package patients
 
 import (
-	"fmt"
 	"github.com/carlosclavijo/Nutricenter-Contracting/internal/domain/valueobjects"
 	"github.com/stretchr/testify/assert"
 	"testing"
@@ -109,15 +108,11 @@ func TestPatientFactory(t *testing.T) {
 func TestPatientFactory_EmptyError(t *testing.T) {
 	factory := NewPatientFactory()
 	patient, err := factory.Create("", "Clavijo", valueobjects.Email{}, valueobjects.Password{}, "", valueobjects.BirthDate{}, nil)
-
-	assert.NotNil(t, err)
-	assert.ErrorContains(t, err, "firstName is empty")
+	assert.ErrorIs(t, err, ErrEmptyFirstNamePatient)
 	assert.Nil(t, patient)
 
 	patient, err = factory.Create("Carlos", "", valueobjects.Email{}, valueobjects.Password{}, "", valueobjects.BirthDate{}, nil)
-
-	assert.NotNil(t, err)
-	assert.ErrorContains(t, err, "lastName is empty")
+	assert.ErrorIs(t, err, ErrEmptyLastNamePatient)
 	assert.Nil(t, patient)
 }
 
@@ -125,35 +120,23 @@ func TestPatientFactory_LongNameError(t *testing.T) {
 	factory := NewPatientFactory()
 	name := "ThisNameIsWayTooLongToBeConsideredValidBecauseItExceedsTheMaximumLengthOfOneHundredCharactersWhichIsNotAllowed"
 	patient, err := factory.Create(name, "Clavijo", valueobjects.Email{}, valueobjects.Password{}, "", valueobjects.BirthDate{}, nil)
-
-	assert.NotNil(t, err)
-	expected := fmt.Sprintf("firstName '%s' is too long('%d'), maximum length is 100 characters", name, len(name))
-	assert.ErrorContains(t, err, expected)
+	assert.ErrorIs(t, err, ErrLongFirstNamePatient)
 	assert.Nil(t, patient)
 
 	name = "ThisLastNameIsWayTooLongToBeConsideredValidBecauseItExceedsTheMaximumLengthOfOneHundredCharactersWhichIsNotAllowed"
 	patient, err = factory.Create("Carlos", name, valueobjects.Email{}, valueobjects.Password{}, "", valueobjects.BirthDate{}, nil)
-
-	assert.NotNil(t, err)
-	expected = fmt.Sprintf("lastName '%s' is too long('%d'), maximum length is 100 characters", name, len(name))
-	assert.ErrorContains(t, err, expected)
+	assert.ErrorIs(t, err, ErrLongLastNamePatient)
 	assert.Nil(t, patient)
 }
 
 func TestPatientFactory_NonAlphaError(t *testing.T) {
 	factory := NewPatientFactory()
 	patient, err := factory.Create("Carlos123", "Clavijo", valueobjects.Email{}, valueobjects.Password{}, "", valueobjects.BirthDate{}, nil)
-
-	assert.NotNil(t, err)
-	expected := fmt.Sprintf("firstName '%s' contains non-alphabetic characters", "Carlos123")
-	assert.ErrorContains(t, err, expected)
+	assert.ErrorIs(t, err, ErrNonAlphaFirstNamePatient)
 	assert.Nil(t, patient)
 
 	patient, err = factory.Create("Carlos", "Clavijo!", valueobjects.Email{}, valueobjects.Password{}, "", valueobjects.BirthDate{}, nil)
-
-	assert.NotNil(t, err)
-	expected = fmt.Sprintf("lastName '%s' contains non-alphabetic characters", "Clavijo!")
-	assert.ErrorContains(t, err, expected)
+	assert.ErrorIs(t, err, ErrNonAlphaLastNamePatient)
 	assert.Nil(t, patient)
 }
 

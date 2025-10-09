@@ -12,6 +12,7 @@ import (
 var (
 	ErrNotPendingDelivery         = errors.New("delivery is not pending so you can't update it")
 	ErrCannotChangeDeliveryStatus = errors.New("cannot make that status change")
+	ErrNotADeliveryStatus         = errors.New("not a delivery status")
 )
 
 type Delivery struct {
@@ -104,12 +105,12 @@ func NewDelivery(contractId uuid.UUID, date time.Time, street string, number int
 func NewDeliveryFromDB(id, contractId uuid.UUID, date time.Time, street string, number int, latitude, longitude float64, status string, createdAt time.Time, updatedAt time.Time, deletedAt *time.Time) (*Delivery, error) {
 	coordinates, err := valueobjects.NewCoordinates(latitude, longitude)
 	if err != nil {
-		return nil, fmt.Errorf("invalid coordinates in DB: %w", err)
+		return nil, err
 	}
 
 	newStatus, err := ParseDeliveryStatus(status)
 	if err != nil {
-		return nil, fmt.Errorf("invalid status in DB: %w", err)
+		return nil, err
 	}
 
 	return &Delivery{

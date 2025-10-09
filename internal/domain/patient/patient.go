@@ -1,7 +1,7 @@
 package patients
 
 import (
-	"fmt"
+	"errors"
 	"github.com/carlosclavijo/Nutricenter-Contracting/internal/domain/abstractions"
 	vo "github.com/carlosclavijo/Nutricenter-Contracting/internal/domain/valueobjects"
 	"github.com/google/uuid"
@@ -22,6 +22,19 @@ type Patient struct {
 	updatedAt   time.Time
 	deletedAt   *time.Time
 }
+
+var (
+	ErrEmptyIdPatient            = errors.New("id cannot be nil")
+	ErrEmptyFirstNamePatient     = errors.New("first name cannot be empty")
+	ErrEmptyLastNamePatient      = errors.New("last name cannot be empty")
+	ErrLongFirstNamePatient      = errors.New("first name cannot be longer than 100 characters")
+	ErrLongLastNamePatient       = errors.New("last name cannot be longer than 100 characters")
+	ErrNonAlphaFirstNamePatient  = errors.New("first name has non alphabetical characters")
+	ErrNonAlphaLastNamePatient   = errors.New("last name has non alphabetical characters")
+	ErrExistPatient              = errors.New("patient already exist")
+	ErrNotFoundPatient           = errors.New("patient not found")
+	ErrInvalidCredentialsPatient = errors.New("invalid credentials")
+)
 
 func NewPatient(firstName, lastName string, email vo.Email, password vo.Password, gender vo.Gender, birth vo.BirthDate, phone *vo.Phone) *Patient {
 	return &Patient{
@@ -91,27 +104,27 @@ func (p *Patient) Logged() {
 func NewPatientFromDB(id uuid.UUID, firstName, lastName, email, password, gender string, birth time.Time, phone *string, lastLoginAt, createdAt, updatedAt time.Time, deletedAt *time.Time) (*Patient, error) {
 	emailVo, err := vo.NewEmail(email)
 	if err != nil {
-		return nil, fmt.Errorf("invalid email in DB: %w", err)
+		return nil, err
 	}
 
 	passwordVo, err := vo.NewHashedPassword(password)
 	if err != nil {
-		return nil, fmt.Errorf("invalid password in DB: %w", err)
+		return nil, err
 	}
 
 	genderVo, err := vo.ParseGender(gender)
 	if err != nil {
-		return nil, fmt.Errorf("invalid gender in DB: %w", err)
+		return nil, err
 	}
 
 	birthVo, err := vo.NewBirthDate(birth)
 	if err != nil {
-		return nil, fmt.Errorf("invalid birth in DB: %w", err)
+		return nil, err
 	}
 
 	phoneVo, err := vo.NewPhone(phone)
 	if err != nil {
-		return nil, fmt.Errorf("invalid phone number in DB: %w", err)
+		return nil, err
 	}
 
 	return &Patient{

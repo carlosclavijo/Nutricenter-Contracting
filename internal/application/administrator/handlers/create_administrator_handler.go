@@ -5,6 +5,7 @@ import (
 	"github.com/carlosclavijo/Nutricenter-Contracting/internal/application/administrator/commands"
 	"github.com/carlosclavijo/Nutricenter-Contracting/internal/application/administrator/dto"
 	"github.com/carlosclavijo/Nutricenter-Contracting/internal/application/administrator/mappers"
+	administrators "github.com/carlosclavijo/Nutricenter-Contracting/internal/domain/administrator"
 	"github.com/carlosclavijo/Nutricenter-Contracting/internal/domain/valueobjects"
 	"golang.org/x/crypto/bcrypt"
 	"log"
@@ -15,6 +16,15 @@ func (h *AdministratorHandler) HandleCreate(ctx context.Context, cmd commands.Cr
 	if err != nil {
 		log.Printf("[handler:administrator][HandleCreate] Error creating email '%s' object: %v", cmd.Email, err)
 		return nil, err
+	}
+
+	exist, err := h.repository.ExistByEmail(ctx, cmd.Email)
+	if err != nil {
+		log.Printf("[handler:administrator][HandleCreate] error verifying if Administrator exists: %v", err)
+		return nil, err
+	} else if exist {
+		log.Printf("[handler:administrator][HandleCreate] the already exist'%v'", cmd.Email)
+		return nil, administrators.ErrExistAdministrator
 	}
 
 	password, err := valueobjects.NewPassword(cmd.Password)

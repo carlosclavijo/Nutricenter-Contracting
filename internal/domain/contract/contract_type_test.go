@@ -1,7 +1,6 @@
 package contracts
 
 import (
-	"fmt"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -11,17 +10,16 @@ func TestContractType(t *testing.T) {
 	halfMonth := HalfMonth
 	other, err := ParseContractType("X")
 
+	assert.NotNil(t, err)
+
 	assert.Equal(t, "monthly", monthly.String())
 	assert.Equal(t, "half-month", halfMonth.String())
 	assert.Equal(t, "unknown", other.String())
-
 	assert.Equal(t, Monthly, monthly)
 	assert.Equal(t, HalfMonth, halfMonth)
 	assert.NotEqual(t, ContractType(""), other.String())
 
-	expected := fmt.Sprintf("input '%s' is not a contract type", "X")
-	assert.NotNil(t, err)
-	assert.ErrorContains(t, err, expected)
+	assert.ErrorIs(t, err, ErrTypeContract)
 
 	ct, err := ParseContractType("monthly")
 	assert.NoError(t, err)

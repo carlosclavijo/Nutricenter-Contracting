@@ -32,6 +32,6 @@ func ParseContractStatus(s string) (ContractStatus, error) {
 	case "finished", "F":
 		return Finished, nil
 	default:
-		return "", fmt.Errorf("input '%s' is not a contract status", s)
+		return "", fmt.Errorf("%w: got %s", ErrStatusContract, s)
 	}
 }

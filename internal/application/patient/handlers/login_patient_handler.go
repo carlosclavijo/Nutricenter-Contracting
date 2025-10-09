@@ -2,29 +2,29 @@ package handlers
 
 import (
 	"context"
-	"errors"
 	"github.com/carlosclavijo/Nutricenter-Contracting/internal/application/patient/commands"
 	"github.com/carlosclavijo/Nutricenter-Contracting/internal/application/patient/dto"
 	"github.com/carlosclavijo/Nutricenter-Contracting/internal/application/patient/mappers"
+	patients "github.com/carlosclavijo/Nutricenter-Contracting/internal/domain/patient"
 	"github.com/carlosclavijo/Nutricenter-Contracting/internal/domain/valueobjects"
 	"golang.org/x/crypto/bcrypt"
 	"log"
 )
 
 func (h *PatientHandler) HandleLogin(ctx context.Context, cmd commands.LoginPatientCommand) (*dto.PatientResponse, error) {
+	email, err := valueobjects.NewEmail(cmd.Email)
+	if err != nil {
+		log.Printf("[handler:patient][HandleUpdate] error parsing email '%s' %v", cmd.Email, err)
+		return nil, err
+	}
+
 	exist, err := h.repository.ExistByEmail(ctx, cmd.Email)
 	if err != nil {
 		log.Printf("[handler:patient][HandleLogin] error verifying if patient exists: %v", err)
 		return nil, err
 	} else if !exist {
 		log.Printf("[handler:patient][HandleLogin] the Patient doesn't exist '%v'", cmd.Email)
-		return nil, errors.New("patient not found")
-	}
-
-	email, err := valueobjects.NewEmail(cmd.Email)
-	if err != nil {
-		log.Printf("[handler:patient][HandleUpdate] error parsing email '%s' %v", cmd.Email, err)
-		return nil, err
+		return nil, patients.ErrNotFoundPatient
 	}
 
 	password, err := valueobjects.NewPassword(cmd.Password)
@@ -40,7 +40,7 @@ func (h *PatientHandler) HandleLogin(ctx context.Context, cmd commands.LoginPati
 
 	if err = bcrypt.CompareHashAndPassword([]byte(patient.Password().String()), []byte(password.String())); err != nil {
 		log.Printf("[handler:patient][HandleLogin] invalid credentials for email=%s", cmd.Email)
-		return nil, errors.New("invalid credentials")
+		return nil, patients.ErrInvalidCredentialsPatient
 	}
 
 	patient.Logged()

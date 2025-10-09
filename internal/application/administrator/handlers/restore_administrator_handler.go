@@ -2,9 +2,9 @@ package handlers
 
 import (
 	"context"
-	"errors"
 	"github.com/carlosclavijo/Nutricenter-Contracting/internal/application/administrator/dto"
 	"github.com/carlosclavijo/Nutricenter-Contracting/internal/application/administrator/mappers"
+	"github.com/carlosclavijo/Nutricenter-Contracting/internal/domain/administrator"
 	"github.com/google/uuid"
 	"log"
 )
@@ -12,7 +12,7 @@ import (
 func (h *AdministratorHandler) HandleRestore(ctx context.Context, id uuid.UUID) (*dto.AdministratorResponse, error) {
 	if id == uuid.Nil {
 		log.Printf("[handler:administrator][HandleRestore] Id '%v' is nil", id)
-		return nil, errors.New("the id is not valid")
+		return nil, administrators.ErrEmptyIdAdministrator
 	}
 
 	exist, err := h.repository.ExistById(ctx, id)
@@ -21,7 +21,7 @@ func (h *AdministratorHandler) HandleRestore(ctx context.Context, id uuid.UUID) 
 		return nil, err
 	} else if !exist {
 		log.Printf("[handler:administrator][HandleRestore] the Administrator doesn't exists '%v'", id)
-		return nil, errors.New("administrator not found")
+		return nil, administrators.ErrNotFoundAdministrator
 	}
 
 	admin, err := h.repository.Restore(ctx, id)

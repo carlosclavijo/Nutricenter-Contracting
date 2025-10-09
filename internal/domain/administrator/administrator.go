@@ -1,7 +1,7 @@
 package administrators
 
 import (
-	"fmt"
+	"errors"
 	"github.com/carlosclavijo/Nutricenter-Contracting/internal/domain/abstractions"
 	vo "github.com/carlosclavijo/Nutricenter-Contracting/internal/domain/valueobjects"
 	"github.com/google/uuid"
@@ -22,6 +22,19 @@ type Administrator struct {
 	updatedAt   time.Time
 	deletedAt   *time.Time
 }
+
+var (
+	ErrEmptyIdAdministrator            = errors.New("id cannot be nil")
+	ErrEmptyFirstNameAdministrator     = errors.New("first name cannot be empty")
+	ErrEmptyLastNameAdministrator      = errors.New("last name cannot be empty")
+	ErrLongFirstNameAdministrator      = errors.New("first name cannot be longer than 100 characters")
+	ErrLongLastNameAdministrator       = errors.New("last name cannot be longer than 100 characters")
+	ErrNonAlphaFirstNameAdministrator  = errors.New("first name has non alphabetical characters")
+	ErrNonAlphaLastNameAdministrator   = errors.New("last name has non alphabetical characters")
+	ErrExistAdministrator              = errors.New("administrator already exist")
+	ErrNotFoundAdministrator           = errors.New("administrator not found")
+	ErrInvalidCredentialsAdministrator = errors.New("invalid credentials")
+)
 
 func (a *Administrator) Id() uuid.UUID {
 	return a.Entity.Id
@@ -91,27 +104,27 @@ func NewAdministrator(firstName, lastName string, email vo.Email, password vo.Pa
 func NewAdministratorFromDB(id uuid.UUID, firstName string, lastName string, email string, password string, gender string, birth time.Time, phone *string, lastLoginAt time.Time, createdAt time.Time, updatedAt time.Time, deletedAt *time.Time) (*Administrator, error) {
 	emailVo, err := vo.NewEmail(email)
 	if err != nil {
-		return nil, fmt.Errorf("invalid email in DB: %w", err)
+		return nil, err
 	}
 
 	passwordVo, err := vo.NewHashedPassword(password)
 	if err != nil {
-		return nil, fmt.Errorf("invalid password in DB: %w", err)
+		return nil, err
 	}
 
 	genderVo, err := vo.ParseGender(gender)
 	if err != nil {
-		return nil, fmt.Errorf("invalid gender in DB: %w", err)
+		return nil, err
 	}
 
 	birthVo, err := vo.NewBirthDate(birth)
 	if err != nil {
-		return nil, fmt.Errorf("invalid birth in DB: %w", err)
+		return nil, err
 	}
 
 	phoneVo, err := vo.NewPhone(phone)
 	if err != nil {
-		return nil, fmt.Errorf("invalid phone number in DB: %w", err)
+		return nil, err
 	}
 
 	return &Administrator{

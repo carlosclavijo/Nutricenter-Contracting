@@ -1,7 +1,6 @@
 package contracts
 
 import (
-	"fmt"
 	deliveries "github.com/carlosclavijo/Nutricenter-Contracting/internal/domain/delivery"
 	"github.com/carlosclavijo/Nutricenter-Contracting/internal/domain/valueobjects"
 	"github.com/google/uuid"
@@ -138,52 +137,48 @@ func TestNewContractFactory_Errors(t *testing.T) {
 	assert.NoError(t, err)
 
 	contract, err := factory.Create(administratorId, patientId, contractType, start, cost, street, number, coordinates)
-	assert.ErrorContains(t, err, "administratorId is not a valid UUID")
+	assert.ErrorIs(t, err, ErrAdministratorIdContract)
 	assert.Nil(t, contract)
 
 	administratorId = uuid.New()
 	patientId = uuid.Nil
 
 	contract, err = factory.Create(administratorId, patientId, contractType, start, cost, street, number, coordinates)
-	assert.ErrorContains(t, err, "patientId is not a valid UUID")
+	assert.ErrorIs(t, err, ErrPatientIdContract)
 	assert.Nil(t, contract)
 
 	patientId = uuid.New()
 	contractType = ContractType("X")
 
 	contract, err = factory.Create(administratorId, patientId, contractType, start, cost, street, number, coordinates)
-	expected := fmt.Sprintf("contractType '%s' is invalid", contractType)
-	assert.ErrorContains(t, err, expected)
+	assert.ErrorIs(t, err, ErrTypeContract)
 	assert.Nil(t, contract)
 
 	contractType = HalfMonth
 	start = time.Now().AddDate(0, 0, 1)
 
 	contract, err = factory.Create(administratorId, patientId, contractType, start, cost, street, number, coordinates)
-	expected = fmt.Sprintf("startDate '%v' is not before two days after tomorrow", start)
-	assert.ErrorContains(t, err, expected)
+	assert.ErrorIs(t, err, ErrStartDateContract)
 	assert.Nil(t, contract)
 
 	start = time.Now().AddDate(0, 0, 5)
 	cost = -10
 
 	contract, err = factory.Create(administratorId, patientId, contractType, start, cost, street, number, coordinates)
-	expected = fmt.Sprintf("cost '%d' suppose to be a positive number", cost)
-	assert.ErrorContains(t, err, expected)
+	assert.ErrorIs(t, err, ErrCostNonPositiveNumberContract)
 	assert.Nil(t, contract)
 
 	cost = 100
 	street = ""
 
 	contract, err = factory.Create(administratorId, patientId, contractType, start, cost, street, number, coordinates)
-	assert.ErrorContains(t, err, "street name is empty")
+	assert.ErrorIs(t, err, ErrEmptyStreetContract)
 	assert.Nil(t, contract)
 
 	street = "Main Street"
 	number = 0
 
 	contract, err = factory.Create(administratorId, patientId, contractType, start, cost, street, number, coordinates)
-	expected = fmt.Sprintf("number '%d' needs to be a positive number", number)
-	assert.ErrorContains(t, err, expected)
+	assert.ErrorIs(t, err, ErrNumberPositiveNumberContract)
 	assert.Nil(t, contract)
 }

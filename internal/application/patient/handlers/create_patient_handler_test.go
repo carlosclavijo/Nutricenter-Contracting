@@ -2,8 +2,8 @@ package handlers
 
 import (
 	"context"
-	"github.com/carlosclavijo/Nutricenter-Contracting/internal/application/administrator/commands"
-	"github.com/carlosclavijo/Nutricenter-Contracting/internal/domain/administrator"
+	"github.com/carlosclavijo/Nutricenter-Contracting/internal/application/patient/commands"
+	"github.com/carlosclavijo/Nutricenter-Contracting/internal/domain/patient"
 	vo "github.com/carlosclavijo/Nutricenter-Contracting/internal/domain/valueobjects"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -17,10 +17,10 @@ func TestHandleCreate(t *testing.T) {
 	mockRepo := new(MockRepository)
 	mockFactory := new(MockFactory)
 
-	handler := NewAdministratorHandler(mockRepo, mockFactory)
+	handler := NewPatientHandler(mockRepo, mockFactory)
 	assert.NotNil(t, handler)
 
-	cmd := commands.CreateAdministratorCommand{
+	cmd := commands.CreatePatientCommand{
 		FirstName: "Jane",
 		LastName:  "Doe",
 		Email:     "jane@example.com",
@@ -45,11 +45,11 @@ func TestHandleCreate(t *testing.T) {
 	assert.NotEmpty(t, birth)
 	assert.NoError(t, err)
 
-	admin := administrators.NewAdministrator(cmd.FirstName, cmd.LastName, email, password, gender, birth, nil)
+	patient := patients.NewPatient(cmd.FirstName, cmd.LastName, email, password, gender, birth, nil)
 
 	mockRepo.On("ExistByEmail", mock.Anything, cmd.Email).Return(false, nil)
-	mockFactory.On("Create", cmd.FirstName, cmd.LastName, email, mock.Anything, gender, birth, (*vo.Phone)(nil)).Return(admin, nil)
-	mockRepo.On("Create", mock.Anything, admin).Return(admin, nil)
+	mockFactory.On("Create", cmd.FirstName, cmd.LastName, email, mock.Anything, gender, birth, (*vo.Phone)(nil)).Return(patient, nil)
+	mockRepo.On("Create", mock.Anything, patient).Return(patient, nil)
 
 	resp, err := handler.HandleCreate(ctx, cmd)
 
@@ -75,11 +75,11 @@ func TestHandleCreate_FactoryError(t *testing.T) {
 	ctx := context.Background()
 	mockRepo := new(MockRepository)
 	mockFactory := new(MockFactory)
-	handler := NewAdministratorHandler(mockRepo, mockFactory)
+	handler := NewPatientHandler(mockRepo, mockFactory)
 
 	assert.NotNil(t, handler)
 
-	cmd := commands.CreateAdministratorCommand{
+	cmd := commands.CreatePatientCommand{
 		FirstName: "",
 		LastName:  "Doe",
 		Email:     "jane@example.com",
@@ -104,11 +104,11 @@ func TestHandleCreate_RepositoryError(t *testing.T) {
 	ctx := context.Background()
 	mockRepo := new(MockRepository)
 	mockFactory := new(MockFactory)
-	handler := NewAdministratorHandler(mockRepo, mockFactory)
+	handler := NewPatientHandler(mockRepo, mockFactory)
 
 	assert.NotNil(t, handler)
 
-	cmd := commands.CreateAdministratorCommand{
+	cmd := commands.CreatePatientCommand{
 		FirstName: "Jane",
 		LastName:  "Doe",
 		Email:     "jane@example.com",
@@ -132,15 +132,15 @@ func TestHandleCreate_RepositoryError(t *testing.T) {
 	assert.NotEmpty(t, birth)
 	assert.NoError(t, err)
 
-	admin := administrators.NewAdministrator(cmd.FirstName, cmd.LastName, email, password, gender, birth, nil)
+	patient := patients.NewPatient(cmd.FirstName, cmd.LastName, email, password, gender, birth, nil)
 
 	mockRepo.On("ExistByEmail", mock.Anything, cmd.Email).Return(false, nil)
-	mockFactory.On("Create", cmd.FirstName, cmd.LastName, email, mock.Anything, gender, birth, (*vo.Phone)(nil)).Return(admin, nil)
-	mockRepo.On("Create", mock.Anything, admin).Return(nil, ErrDbFailureAdministrator)
+	mockFactory.On("Create", cmd.FirstName, cmd.LastName, email, mock.Anything, gender, birth, (*vo.Phone)(nil)).Return(patient, nil)
+	mockRepo.On("Create", mock.Anything, patient).Return(nil, ErrDbFailurePatient)
 
 	resp, err := handler.HandleCreate(ctx, cmd)
 
-	assert.ErrorIs(t, err, ErrDbFailureAdministrator)
+	assert.ErrorIs(t, err, ErrDbFailurePatient)
 	assert.Nil(t, resp)
 
 	mockFactory.AssertExpectations(t)
@@ -151,11 +151,11 @@ func TestHandleCreate_EmailError(t *testing.T) {
 	ctx := context.Background()
 	mockRepo := new(MockRepository)
 	mockFactory := new(MockFactory)
-	handler := NewAdministratorHandler(mockRepo, mockFactory)
+	handler := NewPatientHandler(mockRepo, mockFactory)
 
 	assert.NotNil(t, handler)
 
-	cmd := commands.CreateAdministratorCommand{
+	cmd := commands.CreatePatientCommand{
 		FirstName: "Jane",
 		LastName:  "Doe",
 		Email:     "",
@@ -188,17 +188,17 @@ func TestHandleCreate_ExistenceCheck(t *testing.T) {
 		wantErr     error
 	}{
 		{"create when email does not exist", false, nil, nil},
-		{"fail when email already exists", true, nil, administrators.ErrExistAdministrator},
-		{"fail when repository returns error", false, ErrDbFailureAdministrator, ErrDbFailureAdministrator},
+		{"fail when email already exists", true, nil, patients.ErrExistPatient},
+		{"fail when repository returns error", false, ErrDbFailurePatient, ErrDbFailurePatient},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			mockRepo := new(MockRepository)
 			mockFactory := new(MockFactory)
-			handler := NewAdministratorHandler(mockRepo, mockFactory)
+			handler := NewPatientHandler(mockRepo, mockFactory)
 
-			cmd := commands.CreateAdministratorCommand{
+			cmd := commands.CreatePatientCommand{
 				FirstName: "Jane",
 				LastName:  "Doe",
 				Email:     "jane@example.com",
@@ -222,13 +222,14 @@ func TestHandleCreate_ExistenceCheck(t *testing.T) {
 				assert.NoError(t, err)
 
 				birth, err := vo.NewBirthDate(cmd.Birth)
+
 				assert.NotEmpty(t, birth)
 				assert.NoError(t, err)
 
-				admin := administrators.NewAdministrator(cmd.FirstName, cmd.LastName, email, password, gender, birth, nil)
+				patient := patients.NewPatient(cmd.FirstName, cmd.LastName, email, password, gender, birth, nil)
 
-				mockFactory.On("Create", cmd.FirstName, cmd.LastName, email, mock.Anything, gender, birth, (*vo.Phone)(nil)).Return(admin, nil)
-				mockRepo.On("Create", mock.Anything, admin).Return(admin, nil)
+				mockFactory.On("Create", cmd.FirstName, cmd.LastName, email, mock.Anything, gender, birth, (*vo.Phone)(nil)).Return(patient, nil)
+				mockRepo.On("Create", mock.Anything, patient).Return(patient, nil)
 			}
 
 			resp, err := handler.HandleCreate(ctx, cmd)
@@ -251,11 +252,11 @@ func TestHandleCreate_PasswordError(t *testing.T) {
 	ctx := context.Background()
 	mockRepo := new(MockRepository)
 	mockFactory := new(MockFactory)
-	handler := NewAdministratorHandler(mockRepo, mockFactory)
+	handler := NewPatientHandler(mockRepo, mockFactory)
 
 	assert.NotNil(t, handler)
 
-	cmd := commands.CreateAdministratorCommand{
+	cmd := commands.CreatePatientCommand{
 		FirstName: "Jane",
 		LastName:  "Doe",
 		Email:     "jane@doe.com",
@@ -290,11 +291,11 @@ func TestHandleCreate_GenderError(t *testing.T) {
 	ctx := context.Background()
 	mockRepo := new(MockRepository)
 	mockFactory := new(MockFactory)
-	handler := NewAdministratorHandler(mockRepo, mockFactory)
+	handler := NewPatientHandler(mockRepo, mockFactory)
 
 	assert.NotNil(t, handler)
 
-	cmd := commands.CreateAdministratorCommand{
+	cmd := commands.CreatePatientCommand{
 		FirstName: "Jane",
 		LastName:  "Doe",
 		Email:     "jane@doe.com",
@@ -315,11 +316,11 @@ func TestHandleCreate_BirthError(t *testing.T) {
 	ctx := context.Background()
 	mockRepo := new(MockRepository)
 	mockFactory := new(MockFactory)
-	handler := NewAdministratorHandler(mockRepo, mockFactory)
+	handler := NewPatientHandler(mockRepo, mockFactory)
 
 	assert.NotEmpty(t, handler)
 
-	cmd := commands.CreateAdministratorCommand{
+	cmd := commands.CreatePatientCommand{
 		FirstName: "Jane",
 		LastName:  "Doe",
 		Email:     "jane@doe.com",
@@ -346,12 +347,12 @@ func TestHandleCreate_PhoneError(t *testing.T) {
 	ctx := context.Background()
 	mockRepo := new(MockRepository)
 	mockFactory := new(MockFactory)
-	handler := NewAdministratorHandler(mockRepo, mockFactory)
+	handler := NewPatientHandler(mockRepo, mockFactory)
 
 	assert.NotEmpty(t, handler)
 
 	phone := "78787878A"
-	cmd := commands.CreateAdministratorCommand{
+	cmd := commands.CreatePatientCommand{
 		FirstName: "Jane",
 		LastName:  "Doe",
 		Email:     "jane@doe.com",

@@ -1,7 +1,6 @@
 package administrators
 
 import (
-	"fmt"
 	"github.com/carlosclavijo/Nutricenter-Contracting/internal/domain/valueobjects"
 	"github.com/stretchr/testify/assert"
 	"testing"
@@ -109,13 +108,11 @@ func TestAdministratorFactory(t *testing.T) {
 func TestAdministratorFactory_EmptyError(t *testing.T) {
 	factory := NewAdministratorFactory()
 	admin, err := factory.Create("", "Clavijo", valueobjects.Email{}, valueobjects.Password{}, "", valueobjects.BirthDate{}, nil)
-	assert.NotNil(t, err)
-	assert.ErrorContains(t, err, "firstName is empty")
+	assert.ErrorIs(t, err, ErrEmptyFirstNameAdministrator)
 	assert.Nil(t, admin)
 
 	admin, err = factory.Create("Carlos", "", valueobjects.Email{}, valueobjects.Password{}, "", valueobjects.BirthDate{}, nil)
-	assert.NotNil(t, err)
-	assert.ErrorContains(t, err, "lastName is empty")
+	assert.ErrorIs(t, err, ErrEmptyLastNameAdministrator)
 	assert.Nil(t, admin)
 }
 
@@ -123,43 +120,23 @@ func TestAdministratorFactory_LongNameError(t *testing.T) {
 	factory := NewAdministratorFactory()
 	name := "ThisNameIsWayTooLongToBeConsideredValidBecauseItExceedsTheMaximumLengthOfOneHundredCharactersWhichIsNotAllowed"
 	admin, err := factory.Create(name, "Clavijo", valueobjects.Email{}, valueobjects.Password{}, "", valueobjects.BirthDate{}, nil)
-
-	assert.NotNil(t, err)
-
-	expected := fmt.Sprintf("firstName '%s' is too long('%d'), maximum length is 100 characters", name, len(name))
-	assert.ErrorContains(t, err, expected)
-
+	assert.ErrorIs(t, err, ErrLongFirstNameAdministrator)
 	assert.Nil(t, admin)
 
 	name = "ThisLastNameIsWayTooLongToBeConsideredValidBecauseItExceedsTheMaximumLengthOfOneHundredCharactersWhichIsNotAllowed"
 	admin, err = factory.Create("Carlos", name, valueobjects.Email{}, valueobjects.Password{}, "", valueobjects.BirthDate{}, nil)
-
-	assert.NotNil(t, err)
-
-	expected = fmt.Sprintf("lastName '%s' is too long('%d'), maximum length is 100 characters", name, len(name))
-	assert.ErrorContains(t, err, expected)
-
+	assert.ErrorIs(t, err, ErrLongLastNameAdministrator)
 	assert.Nil(t, admin)
 }
 
 func TestAdministratorFactory_NonAlphaEror(t *testing.T) {
 	factory := NewAdministratorFactory()
 	admin, err := factory.Create("Carlos123", "Clavijo", valueobjects.Email{}, valueobjects.Password{}, "", valueobjects.BirthDate{}, nil)
-
-	assert.NotNil(t, err)
-
-	expected := fmt.Sprintf("firstName '%s' contains non-alphabetic characters", "Carlos123")
-	assert.ErrorContains(t, err, expected)
-
+	assert.ErrorIs(t, err, ErrNonAlphaFirstNameAdministrator)
 	assert.Nil(t, admin)
 
 	admin, err = factory.Create("Carlos", "Clavijo!", valueobjects.Email{}, valueobjects.Password{}, "", valueobjects.BirthDate{}, nil)
-
-	assert.NotNil(t, err)
-
-	expected = fmt.Sprintf("lastName '%s' contains non-alphabetic characters", "Clavijo!")
-	assert.ErrorContains(t, err, expected)
-
+	assert.ErrorIs(t, err, ErrNonAlphaLastNameAdministrator)
 	assert.Nil(t, admin)
 }
 

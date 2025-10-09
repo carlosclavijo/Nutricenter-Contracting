@@ -9,7 +9,7 @@ import (
 func MapToAdministratorDTO(administrator *administrators.Administrator) *dto.AdministratorDTO {
 	var phone *string
 	if administrator.Phone() != nil {
-		p := administrator.Phone().String() // get string value
+		p := administrator.Phone().String()
 		phone = p
 	}
 

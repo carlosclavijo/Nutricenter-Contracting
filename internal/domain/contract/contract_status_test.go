@@ -1,7 +1,6 @@
 package contracts
 
 import (
-	"fmt"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -12,19 +11,17 @@ func TestContractStatus(t *testing.T) {
 	finished := Finished
 	other, err := ParseContractStatus("X")
 
+	assert.NotNil(t, err)
+
 	assert.Equal(t, created.String(), "created")
 	assert.Equal(t, active.String(), "active")
 	assert.Equal(t, finished.String(), "finished")
 	assert.Equal(t, other.String(), "unknown")
-
 	assert.Equal(t, Created, created)
 	assert.Equal(t, Active, active)
 	assert.Equal(t, Finished, finished)
 	assert.NotEqual(t, ContractStatus(""), other.String())
-
-	expected := fmt.Sprintf("input '%s' is not a contract status", "X")
-	assert.NotNil(t, err)
-	assert.ErrorContains(t, err, expected)
+	assert.ErrorIs(t, err, ErrStatusContract)
 
 	cs, err := ParseContractStatus("created")
 	assert.NoError(t, err)

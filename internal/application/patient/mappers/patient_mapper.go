@@ -7,6 +7,12 @@ import (
 )
 
 func MapToPatientDTO(patient *patients.Patient) *dto.PatientDTO {
+	var phone *string
+	if patient.Phone() != nil {
+		p := patient.Phone().String()
+		phone = p
+	}
+
 	return &dto.PatientDTO{
 		Id:        patient.Id().String(),
 		FirstName: patient.FirstName(),
@@ -14,7 +20,7 @@ func MapToPatientDTO(patient *patients.Patient) *dto.PatientDTO {
 		Email:     patient.Email().Value(),
 		Gender:    patient.Gender().String(),
 		Birth:     patient.Birth().Value(),
-		Phone:     patient.Phone().String(),
+		Phone:     phone,
 	}
 }
 

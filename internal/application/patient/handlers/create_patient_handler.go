@@ -5,6 +5,7 @@ import (
 	"github.com/carlosclavijo/Nutricenter-Contracting/internal/application/patient/commands"
 	"github.com/carlosclavijo/Nutricenter-Contracting/internal/application/patient/dto"
 	"github.com/carlosclavijo/Nutricenter-Contracting/internal/application/patient/mappers"
+	patients "github.com/carlosclavijo/Nutricenter-Contracting/internal/domain/patient"
 	"github.com/carlosclavijo/Nutricenter-Contracting/internal/domain/valueobjects"
 	"golang.org/x/crypto/bcrypt"
 	"log"
@@ -17,17 +18,23 @@ func (h *PatientHandler) HandleCreate(ctx context.Context, cmd commands.CreatePa
 		return nil, err
 	}
 
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(cmd.Password), bcrypt.DefaultCost)
+	exist, err := h.repository.ExistByEmail(ctx, cmd.Email)
 	if err != nil {
-		log.Printf("[handler:patient][HandleCreate] Error generating password: %v", err)
+		log.Printf("[handler:patient][HandleCreate] error verifying if patient exists: %v", err)
 		return nil, err
+	} else if exist {
+		log.Printf("[handler:patient][HandleCreate] the already exist'%v'", cmd.Email)
+		return nil, patients.ErrExistPatient
 	}
 
-	password, err := valueobjects.NewPassword(string(hashedPassword))
+	password, err := valueobjects.NewPassword(cmd.Password)
 	if err != nil {
 		log.Printf("[handler:patient][HandleCreate] Error creating password object: %v", err)
 		return nil, err
 	}
+
+	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(cmd.Password), bcrypt.DefaultCost)
+	password, _ = valueobjects.NewPassword(string(hashedPassword))
 
 	gender, err := valueobjects.ParseGender(cmd.Gender)
 	if err != nil {
@@ -49,13 +56,13 @@ func (h *PatientHandler) HandleCreate(ctx context.Context, cmd commands.CreatePa
 
 	patientFactory, err := h.factory.Create(cmd.FirstName, cmd.LastName, email, password, gender, birth, phone)
 	if err != nil {
-		log.Printf("[handler:patient][HandleCreate] error Creating AdministratorFactory: %v", err)
+		log.Printf("[handler:patient][HandleCreate] error Creating Patient Factory: %v", err)
 		return nil, err
 	}
 
 	patient, err := h.repository.Create(ctx, patientFactory)
 	if err != nil {
-		log.Printf("[handler:patient][HandleCreate] error Creating AdministratorRepository: %v", err)
+		log.Printf("[handler:patient][HandleCreate] error Creating Patient Repository: %v", err)
 		return nil, err
 	}
 

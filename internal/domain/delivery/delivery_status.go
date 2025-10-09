@@ -1,7 +1,6 @@
 package deliveries
 
 import (
-	"errors"
 	"fmt"
 )
 
@@ -12,8 +11,6 @@ const (
 	Delivered DeliveryStatus = "D"
 	Cancelled DeliveryStatus = "C"
 )
-
-var ErrNotADeliveryStatus error = errors.New("not a delivery status")
 
 func (s DeliveryStatus) String() string {
 	switch s {

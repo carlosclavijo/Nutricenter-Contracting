@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"context"
-	"errors"
 	"github.com/carlosclavijo/Nutricenter-Contracting/internal/application/patient/commands"
 	"github.com/carlosclavijo/Nutricenter-Contracting/internal/application/patient/dto"
 	"github.com/carlosclavijo/Nutricenter-Contracting/internal/application/patient/mappers"
@@ -14,19 +13,26 @@ import (
 )
 
 func (h *PatientHandler) HandleUpdate(ctx context.Context, cmd commands.UpdatePatientCommand) (*dto.PatientResponse, error) {
-	exist, err := h.repository.ExistById(ctx, cmd.Id)
-	if err != nil {
-		log.Printf("[handler:patient][HandleUpdate] error verifying if Patient exists: %v", err)
-		return nil, err
-	} else if !exist {
-		log.Printf("[handler:patient][HandleUpdate] the Patient doesn't exist '%v'", cmd.Id)
-		return nil, errors.New("patient not found")
+	var err error
+
+	if cmd.Id == uuid.Nil {
+		log.Printf("[handler:patient][HandleUpdate] Id '%v' is nil", cmd.Id)
+		return nil, patients.ErrEmptyIdPatient
 	}
 
 	email, err := valueobjects.NewEmail(cmd.Email)
 	if err != nil {
 		log.Printf("[handler:patient][HandleUpdate] error parsing email: %v", err)
 		return nil, err
+	}
+
+	exist, err := h.repository.ExistById(ctx, cmd.Id)
+	if err != nil {
+		log.Printf("[handler:patient][HandleUpdate] error verifying if Patient exists: %v", err)
+		return nil, err
+	} else if !exist {
+		log.Printf("[handler:patient][HandleUpdate] the Patient doesn't exist '%v'", cmd.Id)
+		return nil, patients.ErrNotFoundPatient
 	}
 
 	password, err := valueobjects.NewPassword(cmd.Password)
@@ -50,11 +56,6 @@ func (h *PatientHandler) HandleUpdate(ctx context.Context, cmd commands.UpdatePa
 	phone, err := valueobjects.NewPhone(cmd.Phone)
 	if err != nil {
 		log.Printf("[handler:patient][HandleUpdate] error parsing phone: %v", err)
-		return nil, err
-	}
-
-	if cmd.Id == uuid.Nil {
-		log.Printf("[handler:patient][HandleUpdate] Id '%v' is nil", cmd.Id)
 		return nil, err
 	}
 

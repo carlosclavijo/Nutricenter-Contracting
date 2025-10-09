@@ -17,32 +17,32 @@ type patientFactory struct{}
 func (patientFactory) Create(firstName, lastName string, email vo.Email, password vo.Password, gender vo.Gender, birth vo.BirthDate, phone *vo.Phone) (*Patient, error) {
 	if firstName == "" {
 		log.Printf("[factory:patient] firstName '%s' is empty", firstName)
-		return nil, fmt.Errorf("firstName is empty")
+		return nil, ErrEmptyFirstNamePatient
 	}
 
 	if lastName == "" {
 		log.Printf("[factory:patient] lastName '%s' is empty", lastName)
-		return nil, fmt.Errorf("lastName is empty")
+		return nil, ErrEmptyLastNamePatient
 	}
 
 	if len(firstName) > 100 {
 		log.Printf("[factory:patient] firstName '%s' is too long (length %d, maximum is 100)", firstName, len(firstName))
-		return nil, fmt.Errorf("firstName '%s' is too long('%d'), maximum length is 100 characters", firstName, len(firstName))
+		return nil, fmt.Errorf("%w: got %s, size %d", ErrLongFirstNamePatient, firstName, len(firstName))
 	}
 
 	if len(lastName) > 100 {
 		log.Printf("[factory:patient] lastName '%s' is too long (length %d, maximum is 100)", lastName, len(lastName))
-		return nil, fmt.Errorf("lastName '%s' is too long('%d'), maximum length is 100 characters", lastName, len(lastName))
+		return nil, fmt.Errorf("%w: got %s, size %d", ErrLongLastNamePatient, lastName, len(lastName))
 	}
 
 	if !isAlpha(firstName) {
 		log.Printf("[factory:patient] firstName '%s' contains non-alphabetic characters", firstName)
-		return nil, fmt.Errorf("firstName '%s' contains non-alphabetic characters", firstName)
+		return nil, fmt.Errorf("%w: got %s", ErrNonAlphaFirstNamePatient, firstName)
 	}
 
 	if !isAlpha(lastName) {
 		log.Printf("[factory:patient] lastName '%s' contains non-alphabetic characters", lastName)
-		return nil, fmt.Errorf("lastName '%s' contains non-alphabetic characters", lastName)
+		return nil, fmt.Errorf("%w: got %s", ErrNonAlphaLastNamePatient, lastName)
 	}
 
 	log.Printf("[factory:patient][SUCCESS] patient created")

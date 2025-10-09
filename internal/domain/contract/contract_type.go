@@ -27,6 +27,6 @@ func ParseContractType(s string) (ContractType, error) {
 	case "half-month", "H":
 		return HalfMonth, nil
 	default:
-		return "", fmt.Errorf("input '%s' is not a contract type", s)
+		return "", fmt.Errorf("%w: got %s", ErrTypeContract, s)
 	}
 }

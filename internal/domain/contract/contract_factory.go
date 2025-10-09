@@ -1,7 +1,6 @@
 package contracts
 
 import (
-	"errors"
 	"fmt"
 	"github.com/carlosclavijo/Nutricenter-Contracting/internal/domain/valueobjects"
 	"github.com/google/uuid"
@@ -12,16 +11,6 @@ import (
 type ContractFactory interface {
 	Create(administratorId, patientId uuid.UUID, contractType ContractType, start time.Time, cost int, street string, number int, coordinates valueobjects.Coordinates) (*Contract, error)
 }
-
-var (
-	ErrAdministratorIdContract       = errors.New("administratorId is not a valid UUID")
-	ErrPatientIdContract             = errors.New("patientId is not a valid UUID")
-	ErrTypeContract                  = errors.New("contract type is not valid")
-	ErrStartDateContract             = errors.New("start date is before two days after tomorrow")
-	ErrCostNonPositiveNumberContract = errors.New("cost is not a positive number")
-	ErrEmptyStreetContract           = errors.New("street name is empty")
-	ErrNumberPositiveNumberContract  = errors.New("number is not a positive number")
-)
 
 type contractFactory struct{}
 

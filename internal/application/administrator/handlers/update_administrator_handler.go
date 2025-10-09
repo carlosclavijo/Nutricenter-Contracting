@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"context"
-	"errors"
 	"github.com/carlosclavijo/Nutricenter-Contracting/internal/application/administrator/commands"
 	"github.com/carlosclavijo/Nutricenter-Contracting/internal/application/administrator/dto"
 	"github.com/carlosclavijo/Nutricenter-Contracting/internal/application/administrator/mappers"
@@ -14,19 +13,26 @@ import (
 )
 
 func (h *AdministratorHandler) HandleUpdate(ctx context.Context, cmd commands.UpdateAdministratorCommand) (*dto.AdministratorResponse, error) {
-	exist, err := h.repository.ExistById(ctx, cmd.Id)
-	if err != nil {
-		log.Printf("[handler:administrator][HandleUpdate] error verifying if Administrator exists: %v", err)
-		return nil, err
-	} else if !exist {
-		log.Printf("[handler:administrator][HandleUpdate] the Administrator doesn't exist '%v'", cmd.Id)
-		return nil, errors.New("administrator not found")
+	var err error
+
+	if cmd.Id == uuid.Nil {
+		log.Printf("[handler:administrator][HandleUpdate] Id '%v' is nil", cmd.Id)
+		return nil, administrators.ErrEmptyIdAdministrator
 	}
 
 	email, err := valueobjects.NewEmail(cmd.Email)
 	if err != nil {
 		log.Printf("[handler:administrator][HandleUpdate] error parsing email '%s': %v", cmd.Email, err)
 		return nil, err
+	}
+
+	exist, err := h.repository.ExistById(ctx, cmd.Id)
+	if err != nil {
+		log.Printf("[handler:administrator][HandleUpdate] error verifying if Administrator exists: %v", err)
+		return nil, err
+	} else if !exist {
+		log.Printf("[handler:administrator][HandleUpdate] the Administrator doesn't exist '%v'", cmd.Id)
+		return nil, administrators.ErrNotFoundAdministrator
 	}
 
 	password, err := valueobjects.NewPassword(cmd.Password)
@@ -50,11 +56,6 @@ func (h *AdministratorHandler) HandleUpdate(ctx context.Context, cmd commands.Up
 	phone, err := valueobjects.NewPhone(cmd.Phone)
 	if err != nil {
 		log.Printf("[handler:administrator][HandleUpdate] error parsing phone '%v': %v", cmd.Phone, err)
-		return nil, err
-	}
-
-	if cmd.Id == uuid.Nil {
-		log.Printf("[handler:administrator][HandleUpdate] Id '%v' is nil", cmd.Id)
 		return nil, err
 	}
 

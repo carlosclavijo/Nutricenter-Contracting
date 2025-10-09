@@ -1,7 +1,7 @@
 package contracts
 
 import (
-	"fmt"
+	"errors"
 	"github.com/carlosclavijo/Nutricenter-Contracting/internal/domain/abstractions"
 	"github.com/carlosclavijo/Nutricenter-Contracting/internal/domain/delivery"
 	"github.com/carlosclavijo/Nutricenter-Contracting/internal/domain/valueobjects"
@@ -25,9 +25,21 @@ type Contract struct {
 	deletedAt       *time.Time
 }
 
+var (
+	ErrAdministratorIdContract       = errors.New("administratorId is not a valid UUID")
+	ErrPatientIdContract             = errors.New("patientId is not a valid UUID")
+	ErrTypeContract                  = errors.New("contract type is not valid")
+	ErrStatusContract                = errors.New("contract status is not valid")
+	ErrStartDateContract             = errors.New("start date is before two days after tomorrow")
+	ErrCostNonPositiveNumberContract = errors.New("cost is not a positive number")
+	ErrEmptyStreetContract           = errors.New("street name is empty")
+	ErrNumberPositiveNumberContract  = errors.New("number is not a positive number")
+	ErrChangeStatusContract          = errors.New("status cannot be change")
+)
+
 func (c *Contract) Active() error {
 	if c.contractStatus != Created {
-		return fmt.Errorf("only Created contracts can convert to Active")
+		return ErrChangeStatusContract
 	}
 	c.contractStatus = Active
 	return nil
@@ -35,7 +47,7 @@ func (c *Contract) Active() error {
 
 func (c *Contract) Completed() error {
 	if c.contractStatus != Active {
-		return fmt.Errorf("only Active contracts can convert to Finished")
+		return ErrChangeStatusContract
 	}
 	c.contractStatus = Finished
 	return nil
@@ -134,12 +146,12 @@ func createCalendar(typ ContractType, contractId uuid.UUID, date time.Time, stre
 func NewContractFromDb(id, aId, pId uuid.UUID, cType, cStatus string, cDate, sDate, eDate time.Time, cost int, d []deliveries.Delivery, cAt, uAt time.Time, dAt *time.Time) (*Contract, error) {
 	contractType, err := ParseContractType(cType)
 	if err != nil {
-		return nil, fmt.Errorf("invalid contract type in DB: %w", err)
+		return nil, err
 	}
 
 	contractStatus, err := ParseContractStatus(cStatus)
 	if err != nil {
-		return nil, fmt.Errorf("invalid contract status in DB: %w", err)
+		return nil, err
 	}
 
 	return &Contract{

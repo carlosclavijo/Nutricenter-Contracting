@@ -2,9 +2,9 @@ package handlers
 
 import (
 	"context"
-	"errors"
 	"github.com/carlosclavijo/Nutricenter-Contracting/internal/application/patient/dto"
 	"github.com/carlosclavijo/Nutricenter-Contracting/internal/application/patient/mappers"
+	patients "github.com/carlosclavijo/Nutricenter-Contracting/internal/domain/patient"
 	"github.com/google/uuid"
 	"log"
 )
@@ -12,7 +12,7 @@ import (
 func (h *PatientHandler) HandleDelete(ctx context.Context, id uuid.UUID) (*dto.PatientResponse, error) {
 	if id == uuid.Nil {
 		log.Printf("[handler:patient][HandleDelete] Id '%v' is nil", id)
-		return nil, errors.New("the id is not valid")
+		return nil, patients.ErrEmptyIdPatient
 	}
 
 	exist, err := h.repository.ExistById(ctx, id)
@@ -21,7 +21,7 @@ func (h *PatientHandler) HandleDelete(ctx context.Context, id uuid.UUID) (*dto.P
 		return nil, err
 	} else if !exist {
 		log.Printf("[handler:patient][HandleDelete] the Patient doesn't exists '%v'", id)
-		return nil, errors.New("patient not found")
+		return nil, patients.ErrNotFoundPatient
 	}
 
 	patient, err := h.repository.Delete(ctx, id)
