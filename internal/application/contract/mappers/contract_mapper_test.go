@@ -4,9 +4,9 @@ import (
 	admMappers "github.com/carlosclavijo/Nutricenter-Contracting/internal/application/administrator/mappers"
 	"github.com/carlosclavijo/Nutricenter-Contracting/internal/application/contract/dto"
 	ptnMappers "github.com/carlosclavijo/Nutricenter-Contracting/internal/application/patient/mappers"
-	administrators "github.com/carlosclavijo/Nutricenter-Contracting/internal/domain/administrator"
-	contracts "github.com/carlosclavijo/Nutricenter-Contracting/internal/domain/contract"
-	patients "github.com/carlosclavijo/Nutricenter-Contracting/internal/domain/patient"
+	"github.com/carlosclavijo/Nutricenter-Contracting/internal/domain/administrator"
+	"github.com/carlosclavijo/Nutricenter-Contracting/internal/domain/contract"
+	"github.com/carlosclavijo/Nutricenter-Contracting/internal/domain/patient"
 	"github.com/carlosclavijo/Nutricenter-Contracting/internal/domain/valueobjects"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -14,8 +14,7 @@ import (
 	"time"
 )
 
-func TestMapToContractDTO(t *testing.T) {
-	//id := uuid.New()
+func TestMapToContract_DTO_And_Response(t *testing.T) {
 	administratorId := uuid.New()
 	patientId := uuid.New()
 	contractType := contracts.HalfMonth

@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-func TestMapToPatientDTO(t *testing.T) {
+func TestMapToPatient_DTO_And_Response(t *testing.T) {
 	firstName := "John"
 	lastName := "Doe"
 	email, _ := valueobjects.NewEmail("user@email.com")

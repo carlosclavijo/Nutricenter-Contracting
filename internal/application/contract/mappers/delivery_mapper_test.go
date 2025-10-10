@@ -1,7 +1,7 @@
 package mappers
 
 import (
-	deliveries "github.com/carlosclavijo/Nutricenter-Contracting/internal/domain/delivery"
+	"github.com/carlosclavijo/Nutricenter-Contracting/internal/domain/delivery"
 	"github.com/carlosclavijo/Nutricenter-Contracting/internal/domain/valueobjects"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-func TestMapToDeliveryDTO(t *testing.T) {
+func TestMapToDelivery_DTO_And_Response(t *testing.T) {
 	contractId := uuid.New()
 	date := time.Now()
 	street := "Elm Street"

@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-func TestHandleCreate(t *testing.T) {
+func TestPatientHandler_HandleCreate(t *testing.T) {
 	ctx := context.Background()
 
 	mockRepo := new(MockRepository)
@@ -71,7 +71,7 @@ func TestHandleCreate(t *testing.T) {
 	mockFactory.AssertExpectations(t)
 }
 
-func TestHandleCreate_FactoryError(t *testing.T) {
+func TestPatientHandler_HandleCreate_FactoryError(t *testing.T) {
 	ctx := context.Background()
 	mockRepo := new(MockRepository)
 	mockFactory := new(MockFactory)
@@ -100,7 +100,7 @@ func TestHandleCreate_FactoryError(t *testing.T) {
 	mockRepo.AssertExpectations(t)
 }
 
-func TestHandleCreate_RepositoryError(t *testing.T) {
+func TestPatientHandler_HandleCreate_RepositoryError(t *testing.T) {
 	ctx := context.Background()
 	mockRepo := new(MockRepository)
 	mockFactory := new(MockFactory)
@@ -147,7 +147,7 @@ func TestHandleCreate_RepositoryError(t *testing.T) {
 	mockRepo.AssertExpectations(t)
 }
 
-func TestHandleCreate_EmailError(t *testing.T) {
+func TestPatientHandler_HandleCreate_EmailError(t *testing.T) {
 	ctx := context.Background()
 	mockRepo := new(MockRepository)
 	mockFactory := new(MockFactory)
@@ -179,7 +179,7 @@ func TestHandleCreate_EmailError(t *testing.T) {
 	assert.Nil(t, resp)
 }
 
-func TestHandleCreate_ExistenceCheck(t *testing.T) {
+func TestPatientHandler_HandleCreate_ExistenceCheck(t *testing.T) {
 	ctx := context.Background()
 	cases := []struct {
 		name        string
@@ -248,7 +248,7 @@ func TestHandleCreate_ExistenceCheck(t *testing.T) {
 	}
 }
 
-func TestHandleCreate_PasswordError(t *testing.T) {
+func TestPatientHandler_HandleCreate_PasswordError(t *testing.T) {
 	ctx := context.Background()
 	mockRepo := new(MockRepository)
 	mockFactory := new(MockFactory)
@@ -287,7 +287,7 @@ func TestHandleCreate_PasswordError(t *testing.T) {
 	assert.Nil(t, resp)
 }
 
-func TestHandleCreate_GenderError(t *testing.T) {
+func TestPatientHandler_HandleCreate_GenderError(t *testing.T) {
 	ctx := context.Background()
 	mockRepo := new(MockRepository)
 	mockFactory := new(MockFactory)
@@ -312,7 +312,7 @@ func TestHandleCreate_GenderError(t *testing.T) {
 	assert.Nil(t, resp)
 }
 
-func TestHandleCreate_BirthError(t *testing.T) {
+func TestPatientHandler_HandleCreate_BirthError(t *testing.T) {
 	ctx := context.Background()
 	mockRepo := new(MockRepository)
 	mockFactory := new(MockFactory)
@@ -343,7 +343,7 @@ func TestHandleCreate_BirthError(t *testing.T) {
 	assert.Empty(t, resp)
 }
 
-func TestHandleCreate_PhoneError(t *testing.T) {
+func TestPatientHandler_HandleCreate_PhoneError(t *testing.T) {
 	ctx := context.Background()
 	mockRepo := new(MockRepository)
 	mockFactory := new(MockFactory)

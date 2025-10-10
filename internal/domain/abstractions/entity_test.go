@@ -21,7 +21,7 @@ func TestNewEntity(t *testing.T) {
 	assert.Empty(t, entity.DomainEvents())
 }
 
-func TestAddDomainEvents(t *testing.T) {
+func TestEntity_AddDomainEvents(t *testing.T) {
 	id := uuid.New()
 	entity := NewEntity(id)
 
@@ -34,7 +34,7 @@ func TestAddDomainEvents(t *testing.T) {
 	assert.WithinDuration(t, entity.DomainEvents()[0].OccurredOn(), event.OccurredOn(), 1e6)
 }
 
-func TestClearDomainEvents(t *testing.T) {
+func TestEntity_ClearDomainEvents(t *testing.T) {
 	id := uuid.New()
 	entity := NewEntity(id)
 

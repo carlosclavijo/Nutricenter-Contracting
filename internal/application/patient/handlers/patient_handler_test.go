@@ -6,7 +6,9 @@ import (
 	"github.com/carlosclavijo/Nutricenter-Contracting/internal/domain/patient"
 	vo "github.com/carlosclavijo/Nutricenter-Contracting/internal/domain/valueobjects"
 	"github.com/google/uuid"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"testing"
 )
 
 var ErrDbFailurePatient error = errors.New("db failure")
@@ -17,6 +19,14 @@ type MockRepository struct {
 
 type MockFactory struct {
 	mock.Mock
+}
+
+func TestNewPatientHandler(t *testing.T) {
+	r := new(MockRepository)
+	f := new(MockFactory)
+	h := NewPatientHandler(r, f)
+
+	assert.NotEmpty(t, h)
 }
 
 func (m *MockFactory) Create(firstName string, lastName string, email vo.Email, password vo.Password, gender vo.Gender, birth vo.BirthDate, phone *vo.Phone) (*patients.Patient, error) {

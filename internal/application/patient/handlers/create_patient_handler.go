@@ -33,8 +33,16 @@ func (h *PatientHandler) HandleCreate(ctx context.Context, cmd commands.CreatePa
 		return nil, err
 	}
 
-	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(cmd.Password), bcrypt.DefaultCost)
-	password, _ = valueobjects.NewPassword(string(hashedPassword))
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(cmd.Password), bcrypt.DefaultCost)
+	if err != nil {
+		log.Printf("[handler:administrator][HandleCreate] Error hashing password %v", err)
+		return nil, err
+	}
+	password, err = valueobjects.NewHashedPassword(string(hashedPassword))
+	if err != nil {
+		log.Printf("[handler:administrator][HandleCreate] Error creating a new hashed password %v", err)
+		return nil, err
+	}
 
 	gender, err := valueobjects.ParseGender(cmd.Gender)
 	if err != nil {

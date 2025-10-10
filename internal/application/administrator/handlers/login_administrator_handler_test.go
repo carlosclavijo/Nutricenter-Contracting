@@ -13,7 +13,7 @@ import (
 	"time"
 )
 
-func TestHandleLogin(t *testing.T) {
+func TestAdministratorHandler_HandleLogin(t *testing.T) {
 	ctx := context.Background()
 	mockRepo := new(MockRepository)
 	mockFactory := new(MockFactory)
@@ -61,7 +61,7 @@ func TestHandleLogin(t *testing.T) {
 	mockFactory.AssertExpectations(t)
 }
 
-func TestHandleLogin_RepositoryError(t *testing.T) {
+func TestAdministratorHandler_HandleLogin_RepositoryError(t *testing.T) {
 	ctx := context.Background()
 	mockRepo := new(MockRepository)
 	mockFactory := new(MockFactory)
@@ -112,7 +112,7 @@ func TestHandleLogin_RepositoryError(t *testing.T) {
 	mockRepo.AssertExpectations(t)
 }
 
-func TestHandleLogin_EmailError(t *testing.T) {
+func TestAdministratorHandler_HandleLogin_EmailError(t *testing.T) {
 	ctx := context.Background()
 	mockRepo := new(MockRepository)
 	mockFactory := new(MockFactory)
@@ -140,7 +140,7 @@ func TestHandleLogin_EmailError(t *testing.T) {
 	assert.Nil(t, resp)
 }
 
-func TestHandleLogin_ExistenceCheck(t *testing.T) {
+func TestAdministratorHandler_HandleLogin_ExistenceCheck(t *testing.T) {
 	ctx := context.Background()
 
 	cases := []struct {
@@ -217,7 +217,7 @@ func TestHandleLogin_ExistenceCheck(t *testing.T) {
 	}
 }
 
-func TestHandleLogin_PasswordError(t *testing.T) {
+func TestAdministratorHandler_HandleLogin_PasswordError(t *testing.T) {
 	ctx := context.Background()
 	mockRepo := new(MockRepository)
 	mockFactory := new(MockFactory)
@@ -252,7 +252,7 @@ func TestHandleLogin_PasswordError(t *testing.T) {
 	assert.Nil(t, resp)
 }
 
-func TestHandleLogin_GetEmailError(t *testing.T) {
+func TestAdministratorHandler_HandleLogin_GetEmailError(t *testing.T) {
 	ctx := context.Background()
 	mockRepo := new(MockRepository)
 	mockFactory := new(MockFactory)
@@ -277,7 +277,7 @@ func TestHandleLogin_GetEmailError(t *testing.T) {
 	mockFactory.AssertExpectations(t)
 }
 
-func TestHandleLogin_InvalidPassword(t *testing.T) {
+func TestAdministratorHandler_HandleLogin_InvalidPassword(t *testing.T) {
 	ctx := context.Background()
 	mockRepo := new(MockRepository)
 	handler := NewAdministratorHandler(mockRepo, nil)

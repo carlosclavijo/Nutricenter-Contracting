@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-func TestPatientFactory(t *testing.T) {
+func TestPatientFactory_Create(t *testing.T) {
 	factory := NewPatientFactory()
 
 	assert.NotNil(t, factory)
@@ -105,7 +105,7 @@ func TestPatientFactory(t *testing.T) {
 	}
 }
 
-func TestPatientFactory_EmptyError(t *testing.T) {
+func TestPatientFactory_Create_EmptyError(t *testing.T) {
 	factory := NewPatientFactory()
 	patient, err := factory.Create("", "Clavijo", valueobjects.Email{}, valueobjects.Password{}, "", valueobjects.BirthDate{}, nil)
 	assert.ErrorIs(t, err, ErrEmptyFirstNamePatient)
@@ -116,7 +116,7 @@ func TestPatientFactory_EmptyError(t *testing.T) {
 	assert.Nil(t, patient)
 }
 
-func TestPatientFactory_LongNameError(t *testing.T) {
+func TestPatientFactory_Create_LongNameError(t *testing.T) {
 	factory := NewPatientFactory()
 	name := "ThisNameIsWayTooLongToBeConsideredValidBecauseItExceedsTheMaximumLengthOfOneHundredCharactersWhichIsNotAllowed"
 	patient, err := factory.Create(name, "Clavijo", valueobjects.Email{}, valueobjects.Password{}, "", valueobjects.BirthDate{}, nil)
@@ -129,7 +129,7 @@ func TestPatientFactory_LongNameError(t *testing.T) {
 	assert.Nil(t, patient)
 }
 
-func TestPatientFactory_NonAlphaError(t *testing.T) {
+func TestPatientFactory_Create_NonAlphaError(t *testing.T) {
 	factory := NewPatientFactory()
 	patient, err := factory.Create("Carlos123", "Clavijo", valueobjects.Email{}, valueobjects.Password{}, "", valueobjects.BirthDate{}, nil)
 	assert.ErrorIs(t, err, ErrNonAlphaFirstNamePatient)

@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-func TestAdministratorFactory(t *testing.T) {
+func TestAdministratorFactory_Create(t *testing.T) {
 	factory := NewAdministratorFactory()
 
 	assert.NotNil(t, factory)
@@ -105,7 +105,7 @@ func TestAdministratorFactory(t *testing.T) {
 	}
 }
 
-func TestAdministratorFactory_EmptyError(t *testing.T) {
+func TestAdministratorFactory_Create_EmptyError(t *testing.T) {
 	factory := NewAdministratorFactory()
 	admin, err := factory.Create("", "Clavijo", valueobjects.Email{}, valueobjects.Password{}, "", valueobjects.BirthDate{}, nil)
 	assert.ErrorIs(t, err, ErrEmptyFirstNameAdministrator)
@@ -116,7 +116,7 @@ func TestAdministratorFactory_EmptyError(t *testing.T) {
 	assert.Nil(t, admin)
 }
 
-func TestAdministratorFactory_LongNameError(t *testing.T) {
+func TestAdministratorFactory_Create_LongNameError(t *testing.T) {
 	factory := NewAdministratorFactory()
 	name := "ThisNameIsWayTooLongToBeConsideredValidBecauseItExceedsTheMaximumLengthOfOneHundredCharactersWhichIsNotAllowed"
 	admin, err := factory.Create(name, "Clavijo", valueobjects.Email{}, valueobjects.Password{}, "", valueobjects.BirthDate{}, nil)
@@ -129,7 +129,7 @@ func TestAdministratorFactory_LongNameError(t *testing.T) {
 	assert.Nil(t, admin)
 }
 
-func TestAdministratorFactory_NonAlphaEror(t *testing.T) {
+func TestAdministratorFactory_Create_NonAlphaError(t *testing.T) {
 	factory := NewAdministratorFactory()
 	admin, err := factory.Create("Carlos123", "Clavijo", valueobjects.Email{}, valueobjects.Password{}, "", valueobjects.BirthDate{}, nil)
 	assert.ErrorIs(t, err, ErrNonAlphaFirstNameAdministrator)
@@ -140,7 +140,7 @@ func TestAdministratorFactory_NonAlphaEror(t *testing.T) {
 	assert.Nil(t, admin)
 }
 
-func TestIsAlpha(t *testing.T) {
+func TestAdministratorFactory_IsAlpha(t *testing.T) {
 	cases := []struct {
 		name, input string
 		expected    bool

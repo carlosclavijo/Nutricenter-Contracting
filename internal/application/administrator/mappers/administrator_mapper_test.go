@@ -1,14 +1,14 @@
 package mappers
 
 import (
-	administrators "github.com/carlosclavijo/Nutricenter-Contracting/internal/domain/administrator"
+	"github.com/carlosclavijo/Nutricenter-Contracting/internal/domain/administrator"
 	"github.com/carlosclavijo/Nutricenter-Contracting/internal/domain/valueobjects"
 	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
 )
 
-func TestMapToAdministratorDTO(t *testing.T) {
+func TestMapToAdministrator_DTO_And_Response(t *testing.T) {
 	firstName := "John"
 	lastName := "Doe"
 	gender := valueobjects.Male
@@ -48,5 +48,4 @@ func TestMapToAdministratorDTO(t *testing.T) {
 	assert.Equal(t, admin.CreatedAt(), response.CreatedAt)
 	assert.Equal(t, admin.UpdatedAt(), response.UpdatedAt)
 	assert.Equal(t, admin.DeletedAt(), response.DeletedAt)
-
 }

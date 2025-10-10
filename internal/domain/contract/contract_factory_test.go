@@ -1,7 +1,7 @@
 package contracts
 
 import (
-	deliveries "github.com/carlosclavijo/Nutricenter-Contracting/internal/domain/delivery"
+	"github.com/carlosclavijo/Nutricenter-Contracting/internal/domain/delivery"
 	"github.com/carlosclavijo/Nutricenter-Contracting/internal/domain/valueobjects"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-func TestNewContractFactory(t *testing.T) {
+func TestContractFactory_Create(t *testing.T) {
 	factory := NewContractFactory()
 
 	assert.Empty(t, factory)
@@ -123,7 +123,7 @@ func TestNewContractFactory(t *testing.T) {
 	}
 }
 
-func TestNewContractFactory_Errors(t *testing.T) {
+func TestContractFactory_Create_Errors(t *testing.T) {
 	factory := NewContractFactory()
 
 	administratorId := uuid.Nil

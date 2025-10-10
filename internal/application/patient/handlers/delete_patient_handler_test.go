@@ -12,7 +12,7 @@ import (
 	"time"
 )
 
-func TestHandleDelete(t *testing.T) {
+func TestPatientHandler_HandleDelete(t *testing.T) {
 	ctx := context.Background()
 	mockRepo := new(MockRepository)
 	mockFactory := new(MockFactory)
@@ -61,7 +61,7 @@ func TestHandleDelete(t *testing.T) {
 	assert.Equal(t, phone.String(), resp.Phone)
 }
 
-func TestHandleDelete_RepositoryError(t *testing.T) {
+func TestPatientHandler_HandleDelete_RepositoryError(t *testing.T) {
 	ctx := context.Background()
 	mockRepo := new(MockRepository)
 	mockFactory := new(MockFactory)
@@ -83,7 +83,7 @@ func TestHandleDelete_RepositoryError(t *testing.T) {
 	mockRepo.AssertExpectations(t)
 }
 
-func TestHandleDelete_IdError(t *testing.T) {
+func TestPatientHandler_HandleDelete_IdError(t *testing.T) {
 	ctx := context.Background()
 	mockRepo := new(MockRepository)
 	mockFactory := new(MockFactory)
@@ -98,7 +98,7 @@ func TestHandleDelete_IdError(t *testing.T) {
 	assert.Nil(t, resp)
 }
 
-func TestHandleDelete_ExistenceCheck(t *testing.T) {
+func TestPatientHandler_HandleDelete_ExistenceCheck(t *testing.T) {
 	ctx := context.Background()
 
 	cases := []struct {
