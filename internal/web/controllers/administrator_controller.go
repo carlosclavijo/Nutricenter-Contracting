@@ -23,7 +23,7 @@ type AdministratorController struct {
 	qryHandler query.AdministratorHandler
 }
 
-func NewAdministratorHandler(db *sql.DB) *AdministratorController {
+func NewAdministratorController(db *sql.DB) *AdministratorController {
 	repo := repositories.NewAdministratorRepository(db)
 	factory := administrators.NewAdministratorFactory()
 	cmdHandler := command.NewAdministratorHandler(repo, factory)

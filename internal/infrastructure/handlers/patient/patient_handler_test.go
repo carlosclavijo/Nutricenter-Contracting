@@ -12,7 +12,7 @@ import (
 	"time"
 )
 
-var ErrDbFailurePatient error = errors.New("db failure")
+var ErrDbConnectionPatient error = errors.New("db connection failed")
 
 type MockRepository struct {
 	mock.Mock
@@ -22,7 +22,7 @@ type MockFactory struct {
 	mock.Mock
 }
 
-func TestNewPatientHandler(t *testing.T) {
+func TestNewAdministratorHandler(t *testing.T) {
 	r := new(MockRepository)
 	f := new(MockFactory)
 	h := NewPatientHandler(r, f)
@@ -30,23 +30,19 @@ func TestNewPatientHandler(t *testing.T) {
 	assert.NotEmpty(t, h)
 }
 
-func (m *MockFactory) Create(firstName string, lastName string, email vo.Email, password vo.Password, gender vo.Gender, birth vo.BirthDate, phone *vo.Phone) (*patients.Patient, error) {
+func (m *MockFactory) Create(firstName, lastName string, email vo.Email, password vo.Password, gender vo.Gender, birth vo.BirthDate, phone *vo.Phone) (*patients.Patient, error) {
 	args := m.Called(firstName, lastName, email, password, gender, birth, phone)
-
-	var result *patients.Patient
-	if v := args.Get(0); v != nil {
-		result = v.(*patients.Patient)
-	}
-
-	return result, args.Error(1)
+	return nil, args.Error(1)
 }
 
 func (m *MockRepository) GetAll(ctx context.Context) ([]*patients.Patient, error) {
-	return nil, nil
+	args := m.Called(ctx)
+	return args.Get(0).([]*patients.Patient), args.Error(1)
 }
 
 func (m *MockRepository) GetList(ctx context.Context) ([]*patients.Patient, error) {
-	return nil, nil
+	args := m.Called(ctx)
+	return args.Get(0).([]*patients.Patient), args.Error(1)
 }
 
 func (m *MockRepository) GetById(ctx context.Context, id uuid.UUID) (*patients.Patient, error) {
@@ -82,60 +78,35 @@ func (m *MockRepository) ExistByEmail(ctx context.Context, email string) (bool, 
 	return v.(bool), args.Error(1)
 }
 
-func (m *MockRepository) Create(ctx context.Context, patient *patients.Patient) (*patients.Patient, error) {
-	args := m.Called(ctx, patient)
-
-	var result *patients.Patient
-	if v := args.Get(0); v != nil {
-		result = v.(*patients.Patient)
-	}
-
-	return result, args.Error(1)
+func (m *MockRepository) Create(ctx context.Context, administrator *patients.Patient) (*patients.Patient, error) {
+	return nil, nil
 }
 
-func (m *MockRepository) Update(ctx context.Context, patient *patients.Patient) (*patients.Patient, error) {
-	args := m.Called(ctx, patient)
-
-	var result *patients.Patient
-	if v := args.Get(0); v != nil {
-		result = v.(*patients.Patient)
-	}
-
-	return result, args.Error(1)
+func (m *MockRepository) Update(ctx context.Context, administrator *patients.Patient) (*patients.Patient, error) {
+	return nil, nil
 }
 
 func (m *MockRepository) Delete(ctx context.Context, id uuid.UUID) (*patients.Patient, error) {
-	args := m.Called(ctx, id)
-
-	var patient *patients.Patient
-	if v := args.Get(0); v != nil {
-		patient, _ = v.(*patients.Patient)
-	}
-
-	return patient, args.Error(1)
+	return nil, nil
 }
 
 func (m *MockRepository) Restore(ctx context.Context, id uuid.UUID) (*patients.Patient, error) {
-	args := m.Called(ctx, id)
-
-	var patient *patients.Patient
-	if v := args.Get(0); v != nil {
-		patient, _ = v.(*patients.Patient)
-	}
-
-	return patient, args.Error(1)
+	return nil, nil
 }
 
 func (m *MockRepository) CountAll(ctx context.Context) (int, error) {
-	return 0, nil
+	args := m.Called(ctx)
+	return args.Get(0).(int), args.Error(1)
 }
 
 func (m *MockRepository) CountActive(ctx context.Context) (int, error) {
-	return 0, nil
+	args := m.Called(ctx)
+	return args.Get(0).(int), args.Error(1)
 }
 
 func (m *MockRepository) CountDeleted(ctx context.Context) (int, error) {
-	return 0, nil
+	args := m.Called(ctx)
+	return args.Get(0).(int), args.Error(1)
 }
 
 func valueObjects(t *testing.T, email, password, gender string, birth time.Time) (vo.Email, vo.Password, vo.Gender, vo.BirthDate) {

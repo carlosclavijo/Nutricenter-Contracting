@@ -23,7 +23,7 @@ type PatientController struct {
 	qryHandler query.PatientHandler
 }
 
-func NewPatientHandler(db *sql.DB) *PatientController {
+func NewPatientController(db *sql.DB) *PatientController {
 	repo := repositories.NewPatientRepository(db)
 	factory := patients.NewPatientFactory()
 	cmdHandler := command.NewPatientHandler(repo, factory)

@@ -33,28 +33,13 @@ func TestHandleUpdate(t *testing.T) {
 		Phone:     nil,
 	}
 
-	email, err := vo.NewEmail(cmd.Email)
-	assert.NotEmpty(t, email)
-	assert.NoError(t, err)
-
-	password, err := vo.NewPassword(cmd.Password)
-	assert.NotEmpty(t, password)
-	assert.NoError(t, err)
-
-	gender, err := vo.ParseGender(cmd.Gender)
-	assert.NoError(t, err)
-
-	birth, err := vo.NewBirthDate(cmd.Birth)
-	assert.NotEmpty(t, birth)
-	assert.NoError(t, err)
-
 	var phone *vo.Phone
 	if cmd.Phone != nil {
 		phone, _ = vo.NewPhone(cmd.Phone)
 	}
 
+	email, password, gender, birth := valueObjects(t, cmd.Email, cmd.Password, cmd.Gender, cmd.Birth)
 	patient := patients.NewPatient(cmd.FirstName, cmd.LastName, email, password, gender, birth, phone)
-
 	patient.AggregateRoot = abstractions.NewAggregateRoot(cmd.Id)
 
 	mockRepo.On("ExistById", mock.Anything, cmd.Id).Return(true, nil)
@@ -94,21 +79,7 @@ func TestHandleUpdate_RepositoryError(t *testing.T) {
 		Birth:     time.Now().AddDate(-25, 0, 0),
 	}
 
-	email, err := vo.NewEmail(cmd.Email)
-	assert.NotEmpty(t, email)
-	assert.NoError(t, err)
-
-	password, err := vo.NewPassword(cmd.Password)
-	assert.NotEmpty(t, password)
-	assert.NoError(t, err)
-
-	gender, err := vo.ParseGender(cmd.Gender)
-	assert.NoError(t, err)
-
-	birth, err := vo.NewBirthDate(cmd.Birth)
-	assert.NotEmpty(t, birth)
-	assert.NoError(t, err)
-
+	email, password, gender, birth := valueObjects(t, cmd.Email, cmd.Password, cmd.Gender, cmd.Birth)
 	patient := patients.NewPatient(cmd.FirstName, cmd.LastName, email, password, gender, birth, nil)
 	patient.AggregateRoot = abstractions.NewAggregateRoot(cmd.Id)
 
@@ -220,21 +191,7 @@ func TestHandleUpdate_ExistenceCheck(t *testing.T) {
 			mockRepo.On("ExistById", mock.Anything, cmd.Id).Return(tc.idExists, tc.repoError)
 
 			if tc.idExists && tc.repoError == nil {
-				email, err := vo.NewEmail(cmd.Email)
-				assert.NotEmpty(t, email)
-				assert.NoError(t, err)
-
-				password, err := vo.NewPassword(cmd.Password)
-				assert.NotEmpty(t, password)
-				assert.NoError(t, err)
-
-				gender, err := vo.ParseGender(cmd.Gender)
-				assert.NoError(t, err)
-
-				birth, err := vo.NewBirthDate(cmd.Birth)
-				assert.NotEmpty(t, birth)
-				assert.NoError(t, err)
-
+				email, password, gender, birth := valueObjects(t, cmd.Email, cmd.Password, cmd.Gender, cmd.Birth)
 				patient := patients.NewPatient(cmd.FirstName, cmd.LastName, email, password, gender, birth, nil)
 				patient.AggregateRoot = abstractions.NewAggregateRoot(cmd.Id)
 

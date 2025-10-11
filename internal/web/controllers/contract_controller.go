@@ -52,7 +52,7 @@ type ContractController struct {
 	qryHandler query.ContractHandler
 }
 
-func NewContractHandler(db *sql.DB) *ContractController {
+func NewContractController(db *sql.DB) *ContractController {
 	repo := repositories.NewContractRepository(db)
 	rAdm := repositories.NewAdministratorRepository(db)
 	rPtn := repositories.NewPatientRepository(db)

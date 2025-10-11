@@ -14,9 +14,9 @@ type Routes struct {
 
 func NewRoutes(db *sql.DB) *Routes {
 	return &Routes{
-		AdministratorController: controllers.NewAdministratorHandler(db),
-		PatientController:       controllers.NewPatientHandler(db),
-		ContractController:      controllers.NewContractHandler(db),
+		AdministratorController: controllers.NewAdministratorController(db),
+		PatientController:       controllers.NewPatientController(db),
+		ContractController:      controllers.NewContractController(db),
 	}
 }
 

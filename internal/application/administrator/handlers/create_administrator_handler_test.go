@@ -117,21 +117,7 @@ func TestAdministratorHandler_HandleCreate_RepositoryError(t *testing.T) {
 		Birth:     time.Now().AddDate(-25, 0, 0),
 	}
 
-	email, err := vo.NewEmail(cmd.Email)
-	assert.NotEmpty(t, email)
-	assert.NoError(t, err)
-
-	password, err := vo.NewPassword(cmd.Password)
-	assert.NotEmpty(t, password)
-	assert.NoError(t, err)
-
-	gender, err := vo.ParseGender(cmd.Gender)
-	assert.NoError(t, err)
-
-	birth, err := vo.NewBirthDate(cmd.Birth)
-	assert.NotEmpty(t, birth)
-	assert.NoError(t, err)
-
+	email, password, gender, birth := valueObjects(t, cmd.Email, cmd.Password, cmd.Gender, cmd.Birth)
 	admin := administrators.NewAdministrator(cmd.FirstName, cmd.LastName, email, password, gender, birth, nil)
 
 	mockRepo.On("ExistByEmail", mock.Anything, cmd.Email).Return(false, nil)
@@ -210,21 +196,7 @@ func TestAdministratorHandler_HandleCreate_ExistenceCheck(t *testing.T) {
 			mockRepo.On("ExistByEmail", mock.Anything, cmd.Email).Return(tc.emailExists, tc.repoError)
 
 			if !tc.emailExists && tc.repoError == nil {
-				email, err := vo.NewEmail(cmd.Email)
-				assert.NotEmpty(t, email)
-				assert.NoError(t, err)
-
-				password, err := vo.NewPassword(cmd.Password)
-				assert.NotEmpty(t, password)
-				assert.NoError(t, err)
-
-				gender, err := vo.ParseGender(cmd.Gender)
-				assert.NoError(t, err)
-
-				birth, err := vo.NewBirthDate(cmd.Birth)
-				assert.NotEmpty(t, birth)
-				assert.NoError(t, err)
-
+				email, password, gender, birth := valueObjects(t, cmd.Email, cmd.Password, cmd.Gender, cmd.Birth)
 				admin := administrators.NewAdministrator(cmd.FirstName, cmd.LastName, email, password, gender, birth, nil)
 
 				mockFactory.On("Create", cmd.FirstName, cmd.LastName, email, mock.Anything, gender, birth, (*vo.Phone)(nil)).Return(admin, nil)

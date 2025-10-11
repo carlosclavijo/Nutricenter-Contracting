@@ -24,27 +24,10 @@ func TestPatientHandler_HandleLogin(t *testing.T) {
 		Password: "strong1!P",
 	}
 
-	email, err := vo.NewEmail(cmd.Email)
-	assert.NotEmpty(t, email)
-	assert.NoError(t, err)
-
-	password, err := vo.NewPassword(cmd.Password)
-	assert.NotEmpty(t, password)
-	assert.NoError(t, err)
-
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(cmd.Password), bcrypt.DefaultCost)
 	assert.NoError(t, err)
 
-	password, err = vo.NewHashedPassword(string(hashedPassword))
-	assert.NotEmpty(t, password)
-	assert.NoError(t, err)
-
-	gender, err := vo.ParseGender("F")
-	assert.NotEmpty(t, password)
-	assert.NoError(t, err)
-
-	birth, _ := vo.NewBirthDate(time.Now().AddDate(-25, 0, 0))
-
+	email, password, gender, birth := valueObjects(t, cmd.Email, string(hashedPassword), "F", time.Now().AddDate(-25, 0, 0))
 	patient := patients.NewPatient("Jane", "Doe", email, password, gender, birth, nil)
 
 	mockRepo.On("ExistByEmail", mock.Anything, cmd.Email).Return(true, nil)
@@ -74,28 +57,10 @@ func TestPatientHandler_HandleLogin_RepositoryError(t *testing.T) {
 		Password: "Str0ng!1",
 	}
 
-	email, err := vo.NewEmail(cmd.Email)
-	assert.NotEmpty(t, email)
-	assert.NoError(t, err)
-
-	password, err := vo.NewPassword(cmd.Password)
-	assert.NotEmpty(t, password)
-	assert.NoError(t, err)
-
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(cmd.Password), bcrypt.DefaultCost)
 	assert.NoError(t, err)
 
-	password, err = vo.NewHashedPassword(string(hashedPassword))
-	assert.NotEmpty(t, password)
-	assert.NoError(t, err)
-
-	gender, err := vo.ParseGender("M")
-	assert.NoError(t, err)
-
-	birth, err := vo.NewBirthDate(time.Now().AddDate(-25, 0, 0))
-	assert.NotEmpty(t, birth)
-	assert.NoError(t, err)
-
+	email, password, gender, birth := valueObjects(t, cmd.Email, string(hashedPassword), "M", time.Now().AddDate(-25, 0, 0))
 	patient := patients.NewPatient("John", "Doe", email, password, gender, birth, nil)
 
 	mockRepo.On("ExistByEmail", mock.Anything, cmd.Email).Return(true, nil)
@@ -168,33 +133,11 @@ func TestPatientHandler_HandleLogin_ExistenceCheck(t *testing.T) {
 			mockRepo.On("ExistByEmail", mock.Anything, cmd.Email).Return(tc.emailExists, tc.repoError)
 
 			if tc.emailExists && tc.repoError == nil {
-				email, err := vo.NewEmail(cmd.Email)
-				assert.NotEmpty(t, email)
-				assert.NoError(t, err)
-
-				gender, err := vo.ParseGender("F")
-				assert.NoError(t, err)
-
-				birth, err := vo.NewBirthDate(time.Now().AddDate(-25, 0, 0))
-				assert.NotEmpty(t, birth)
-				assert.NoError(t, err)
-
 				hashedPassword, err := bcrypt.GenerateFromPassword([]byte(cmd.Password), bcrypt.DefaultCost)
 				assert.NoError(t, err)
 
-				password, err := vo.NewPassword(string(hashedPassword))
-				assert.NotEmpty(t, password)
-				assert.NoError(t, err)
-
-				patient := patients.NewPatient(
-					"Jane",
-					"Doe",
-					email,
-					password,
-					gender,
-					birth,
-					nil,
-				)
+				email, password, gender, birth := valueObjects(t, cmd.Email, string(hashedPassword), "F", time.Now().AddDate(-25, 0, 0))
+				patient := patients.NewPatient("Jane", "Doe", email, password, gender, birth, nil)
 
 				mockRepo.On("GetByEmail", mock.Anything, email.Value()).Return(patient, nil)
 				mockRepo.On("Update", mock.Anything, mock.AnythingOfType("*patients.Patient")).Return(patient, nil)

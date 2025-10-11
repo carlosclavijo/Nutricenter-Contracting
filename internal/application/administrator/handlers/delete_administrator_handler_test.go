@@ -23,20 +23,8 @@ func TestAdministratorHandler_HandleDelete(t *testing.T) {
 	id := uuid.New()
 	firstName := "John"
 	lastName := "Doe"
-	email, err := vo.NewEmail("valid@email.com")
-	assert.NotEmpty(t, email)
-	assert.NoError(t, err)
 
-	password, err := vo.NewPassword("sTrong!1s")
-	assert.NotEmpty(t, password)
-	assert.NoError(t, err)
-
-	gender, err := vo.ParseGender("M")
-	assert.NoError(t, err)
-
-	birth, err := vo.NewBirthDate(time.Now().AddDate(-20, 0, 0))
-	assert.NotEmpty(t, birth)
-	assert.NoError(t, err)
+	email, password, gender, birth := valueObjects(t, "valid@email.com", "sTrong!1s", "M", time.Now().AddDate(-20, 0, 0))
 
 	phoneStr := "78787878"
 	phone, err := vo.NewPhone(&phoneStr)
@@ -129,21 +117,7 @@ func TestAdministratorHandler_HandleDelete_ExistenceCheck(t *testing.T) {
 			mockRepo.On("ExistById", mock.Anything, id).Return(tc.idExists, tc.repoError)
 
 			if tc.idExists && tc.repoError == nil {
-				nEmail, err := vo.NewEmail(email)
-				assert.NotEmpty(t, nEmail)
-				assert.NoError(t, err)
-
-				nPassword, err := vo.NewPassword(password)
-				assert.NotEmpty(t, nPassword)
-				assert.NoError(t, err)
-
-				nGender, err := vo.ParseGender(gender)
-				assert.NoError(t, err)
-
-				nBirth, err := vo.NewBirthDate(birth)
-				assert.NotEmpty(t, nBirth)
-				assert.NoError(t, err)
-
+				nEmail, nPassword, nGender, nBirth := valueObjects(t, email, password, gender, birth)
 				admin := administrators.NewAdministrator(firstName, lastName, nEmail, nPassword, nGender, nBirth, nil)
 				admin.AggregateRoot = abstractions.NewAggregateRoot(id)
 
